@@ -29,7 +29,7 @@ export default function App() {
     <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Demo mode</span><button className="bell" aria-label="Notifications" onClick={() => go('Alerts & Logs')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount}/>}
+        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount} pillowDispensing={pillowDispensing} startPillow={() => { if (!pillowDispensing) { setPillowDispensing(true); inform('Pillow dispensing started in demo mode. No machine hardware is being controlled.'); } }} stopPillow={() => { if (pillowDispensing) { setPillowDispensing(false); setPillowCount(v => v + 1); inform('Pillow cycle recorded in this browser session. This is a demo count, not a live machine record.'); } }}/>}
         {page === 'Live Monitoring' && <LiveMonitoring inform={inform}/>}
         {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod}/>}
         {page === 'Alerts & Logs' && <Alerts filter={filter} setFilter={setFilter}/>}
