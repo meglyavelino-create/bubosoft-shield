@@ -17,8 +17,6 @@ export default function App() {
   const [refreshCount, setRefreshCount] = useState(0);
   const [pillowCount, setPillowCount] = useState(0);
   const [pillowDispensing, setPillowDispensing] = useState(false);
-  const [pillowCount, setPillowCount] = useState(0);
-  const [pillowDispensing, setPillowDispensing] = useState(false);
   const go = (name) => { setPage(name); setMenu(false); setNotice(''); };
   const inform = (message) => setNotice(message);
   const refresh = () => { setRefreshCount(v => v + 1); inform('Demo data refreshed. Live readings will appear after Firebase and controller integration.'); };
