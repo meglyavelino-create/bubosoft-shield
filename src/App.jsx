@@ -120,7 +120,14 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const points = snapshots;
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
-        return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total, hasSnapshots:snapshots.length > 0};
+        const path = coords.reduce((d, p, i) => {
+          if (i === 0) return `M ${p.x} ${p.y}`;
+          const prev = coords[i - 1];
+          const midX = (prev.x + p.x) / 2;
+          const midY = (prev.y + p.y) / 2;
+          return i === 1 ? `${d} Q ${prev.x} ${prev.y} ${midX} ${midY} T ${p.x} ${p.y}` : `${d} T ${p.x} ${p.y}`;
+        }, '');
+        return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
       };
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
       const pillowLine = buildLine(pillowTotal, ['pillowsProduced', 'pillowCount', 'pillowCountAfter']);
@@ -129,8 +136,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         <div className="line-chart-plot">
           {[0,1,2,3,4].map(n=><div className="line-chart-gridline" key={n} style={{top:`${n*25}%`}}/>)}
           {hasData && data.coords.length > 0 ? <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
-            {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
-            {/* Avoid stretched oval markers: keep the production trend line clean at every screen width. */}
+            {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
           </svg> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
           <div className="line-chart-x"><span>{data.coords.length ? new Date(data.coords[0].createdAt).toLocaleDateString() : 'Start'}</span><span>{data.coords.length ? new Date(data.coords[data.coords.length-1].createdAt).toLocaleDateString() : 'Latest'}</span></div>
         </div>
