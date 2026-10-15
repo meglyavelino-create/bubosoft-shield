@@ -22,7 +22,7 @@ export default function App() {
   const [machineData, setMachineData] = useState(null);
   const [productionSummary, setProductionSummary] = useState(null);
   const [productionHistory, setProductionHistory] = useState([]);
-  const [productionReportRange, setProductionReportRange] = useState('Week');
+  const [productionReportRange, setProductionReportRange] = useState('Day');
   const [notificationData, setNotificationData] = useState([]);
   const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const [firebaseStatus, setFirebaseStatus] = useState('Connecting');
@@ -101,7 +101,9 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
     {(() => {
       const now = new Date();
       const start = new Date(now);
-      if (productionReportRange === 'Week') {
+      if (productionReportRange === 'Day') {
+        start.setHours(0, 0, 0, 0);
+      } else if (productionReportRange === 'Week') {
         const day = (start.getDay() + 6) % 7;
         start.setDate(start.getDate() - day);
         start.setHours(0, 0, 0, 0);
@@ -142,7 +144,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       return <section className="panel production-period-panel">
         <div className="panel-head"><div><h2>Production by period</h2><p>Completed output grouped by recorded date and time</p></div>
           <div className="period-selector" role="group" aria-label="Production report period">
-            {['Week','Month','Year'].map(option=><button type="button" key={option} className={productionReportRange===option?'active':''} onClick={()=>setProductionReportRange(option)}>{option}</button>)}
+            {['Day','Week','Month','Year'].map(option=><button type="button" key={option} className={productionReportRange===option?'active':''} onClick={()=>setProductionReportRange(option)}>{option}</button>)}
           </div>
         </div>
         <div className="production-period-dates"><CalendarDays size={14}/><span>{rangeText}</span></div>
