@@ -90,3 +90,14 @@
 .event-read .event-icon{opacity:.7}
 .mark-read-button{flex-shrink:0}
 @media(max-width:760px){.notification-page-actions{justify-content:flex-start}.notification-popover-item{align-items:flex-start}.notification-mark-read{font-size:8px}}
+
+
+/* Firebase-driven process stage states */
+.stage-active .stage-icon,.stage-card-active .stage-card-icon{background:#e5f6eb;color:#23824a;border-color:#c6e8d0}
+.stage-active>span,.stage-card-active .stage-waiting{color:#23824a;font-weight:800}
+.stage-active>em{color:#23824a;font-style:normal}
+.stage-complete .stage-icon,.stage-card-complete .stage-card-icon{background:#edf4ff;color:#4278bf;border-color:#d7e5fb}
+.stage-complete>span,.stage-card-complete .stage-waiting{color:#4278bf;font-weight:800}
+.stage-complete>em{color:#4278bf;font-style:normal}
+.stage-interrupted .stage-icon,.stage-card-interrupted .stage-card-icon{background:#fff0ed;color:#c94d3f;border-color:#f6d5ce}
+.stage-interrupted>span,.stage-card-interrupted .stage-waiting{color:#c94d3f;font-weight:800}
