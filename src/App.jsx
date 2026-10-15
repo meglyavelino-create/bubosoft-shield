@@ -79,7 +79,7 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
   const cottonLevel = !hasCottonData ? 'No data' : sensors.bottomCottonLaser === true ? 'Full' : sensors.middleCottonLaser === true ? 'Half' : 'Empty';
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   const liquidLabel = !hasLiquidData ? 'No data' : sensors.fullLiquidSensor ? 'Full' : sensors.halfLiquidSensor ? 'Half' : 'Empty';
-  const machineLabel = machineData?.status || 'Waiting for data';
+  const machineLabel = machineData?.status ? String(machineData.status).toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) : 'Waiting for data';
   const summaryStart = new Date();
   if (period === 'Today') summaryStart.setHours(0,0,0,0);
   else if (period === 'This week') { summaryStart.setDate(summaryStart.getDate() - ((summaryStart.getDay()+6)%7)); summaryStart.setHours(0,0,0,0); }
