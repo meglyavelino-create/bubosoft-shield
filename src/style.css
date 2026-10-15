@@ -32,3 +32,7 @@
 
 /* Settings About panel */
 .about-brand{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid #e7efe8;border-radius:11px;background:linear-gradient(135deg,#f4fbf5,#fff)}.about-logo{width:48px;height:48px;display:grid;place-items:center;flex-shrink:0;border-radius:14px;background:#e1f5e8;color:#167448}.about-brand>div:last-child{display:grid;gap:5px;min-width:0}.about-brand b{font:800 14px Manrope,sans-serif;letter-spacing:.02em;color:#174b32}.about-brand span{font-size:10px;line-height:1.5;color:#819187}.about-description{font-size:11px;line-height:1.7;color:#718278;margin:15px 0}.about-features{display:grid;gap:10px;padding:13px;border-radius:10px;background:#f7faf7}.about-features span{display:flex;align-items:flex-start;gap:8px;font-size:10px;line-height:1.5;color:#526b5a}.about-features svg{color:#338653;flex-shrink:0;margin-top:1px}.about-meta{margin-top:8px}.about-meta .config-row:last-child{border-bottom:0}.about-panel .sensor-note{margin-top:10px}
+
+
+/* Notification preference groups */
+.notification-group-label{margin-top:17px;padding:8px 0 4px;font-size:9px;font-weight:800;letter-spacing:.1em;color:#8b9b90}.notification-group-label:first-of-type{margin-top:4px}
