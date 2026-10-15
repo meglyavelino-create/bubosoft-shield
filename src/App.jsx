@@ -22,6 +22,7 @@ export default function App() {
   const [machineData, setMachineData] = useState(null);
   const [productionSummary, setProductionSummary] = useState(null);
   const [productionHistory, setProductionHistory] = useState([]);
+  const [productionReportRange, setProductionReportRange] = useState('Week');
   const [notificationData, setNotificationData] = useState([]);
   const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const [firebaseStatus, setFirebaseStatus] = useState('Connecting');
@@ -97,6 +98,61 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
     <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent containers processed" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
+    {(() => {
+      const now = new Date();
+      const start = new Date(now);
+      if (productionReportRange === 'Week') {
+        const day = (start.getDay() + 6) % 7;
+        start.setDate(start.getDate() - day);
+        start.setHours(0, 0, 0, 0);
+      } else if (productionReportRange === 'Month') {
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+      } else {
+        start.setMonth(0, 1);
+        start.setHours(0, 0, 0, 0);
+      }
+      const end = new Date(now);
+      const all = [...productionHistory].filter(item => item.createdAt).sort((a,b) => Number(a.createdAt)-Number(b.createdAt));
+      let previousContainers = null;
+      let previousPillows = null;
+      let containers = 0;
+      let pillows = 0;
+      let knownContainerEvents = 0;
+      let knownPillowEvents = 0;
+      all.forEach(item => {
+        const timestamp = Number(item.createdAt);
+        const rawContainers = item.repellentContainerCount ?? item.repellentContainersProcessed ?? item.containerCountAfter;
+        const rawPillows = item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
+        const currentContainers = rawContainers !== undefined && rawContainers !== null && Number.isFinite(Number(rawContainers)) ? Number(rawContainers) : null;
+        const currentPillows = rawPillows !== undefined && rawPillows !== null && Number.isFinite(Number(rawPillows)) ? Number(rawPillows) : null;
+        if (currentContainers !== null) {
+          const delta = previousContainers === null ? (currentContainers === 1 ? 1 : 0) : Math.max(0, currentContainers - previousContainers);
+          if (timestamp >= start.getTime() && timestamp <= end.getTime()) { containers += delta; knownContainerEvents++; }
+          previousContainers = currentContainers;
+        }
+        if (currentPillows !== null) {
+          const delta = previousPillows === null ? (currentPillows === 1 ? 1 : 0) : Math.max(0, currentPillows - previousPillows);
+          if (timestamp >= start.getTime() && timestamp <= end.getTime()) { pillows += delta; knownPillowEvents++; }
+          previousPillows = currentPillows;
+        }
+      });
+      const dateOptions = {month:'short', day:'numeric', year:'numeric'};
+      const rangeText = `${start.toLocaleDateString(undefined,dateOptions)} – ${now.toLocaleDateString(undefined,dateOptions)}`;
+      return <section className="panel production-period-panel">
+        <div className="panel-head"><div><h2>Production by period</h2><p>Completed output grouped by recorded date and time</p></div>
+          <div className="period-selector" role="group" aria-label="Production report period">
+            {['Week','Month','Year'].map(option=><button type="button" key={option} className={productionReportRange===option?'active':''} onClick={()=>setProductionReportRange(option)}>{option}</button>)}
+          </div>
+        </div>
+        <div className="production-period-dates"><CalendarDays size={14}/><span>{rangeText}</span></div>
+        <div className="production-period-stats">
+          <div className="period-stat"><span className="period-stat-icon green"><Droplets size={17}/></span><span className="period-stat-label">Repellent containers</span><strong>{containers}</strong><small>Completed in this {productionReportRange.toLowerCase()}</small></div>
+          <div className="period-stat"><span className="period-stat-icon blue"><Package size={17}/></span><span className="period-stat-label">Pillows produced</span><strong>{pillows}</strong><small>Completed in this {productionReportRange.toLowerCase()}</small></div>
+        </div>
+        <div className="chart-footnote"><Radio size={14}/> Period totals use saved cumulative count snapshots. Older records without snapshots cannot be counted accurately.</div>
+      </section>;
+    })()}
     {(() => {
       const completedEvents = [...productionHistory]
         .filter(item => /process completed/i.test(String(item.event || item.title || '')) && item.createdAt)
