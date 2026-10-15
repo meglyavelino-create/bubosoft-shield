@@ -109,12 +109,6 @@ function SettingsPage({inform}) {
   };
   return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="Configure notification preferences and review system connection information."/>
     <div className="settings-grid">
-      <section className="panel"><div className="panel-head"><div><h2>Notifications</h2><p>These machine events will automatically generate notifications.</p></div><div className="settings-icon"><Bell size={17}/></div></div>
-        <div className="setting-toggle notification-fixed"><div><b>Cotton is empty</b><small>Notify when the cotton sensors report insufficient cotton.</small></div><span className="always-on">ALWAYS ON</span></div>
-        <div className="setting-toggle notification-fixed"><div><b>Process completed</b><small>Notify when the controller reports a successful process completion.</small></div><span className="always-on">ALWAYS ON</span></div>
-        <div className="setting-toggle notification-fixed"><div><b>Process interrupted</b><small>Notify when the controller reports a process interruption.</small></div><span className="always-on">ALWAYS ON</span></div>
-        <div className="sensor-note"><CircleAlert size={16}/> All three notification types are enabled by default. No selection is needed. Actual notifications will appear after Firebase and machine event integration are configured.</div>
-      </section>
       <section className="panel about-panel"><div className="panel-head"><div><h2>About</h2><p>Project information</p></div><div className="settings-icon"><Leaf size={18}/></div></div>
         <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
         <p className="about-description">A machine monitoring interface for a kapok fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
