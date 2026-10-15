@@ -120,15 +120,8 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const points = snapshots;
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
-        let path = coords.length ? `M ${coords[0].x} ${coords[0].y}` : '';
-        for (let i = 1; i < coords.length - 1; i++) {
-          const current = coords[i];
-          const next = coords[i + 1];
-          const midX = (current.x + next.x) / 2;
-          const midY = (current.y + next.y) / 2;
-          path += ` Q ${current.x} ${current.y} ${midX} ${midY}`;
-        }
-        if (coords.length > 1) path += ` L ${coords[coords.length - 1].x} ${coords[coords.length - 1].y}`;
+        // Use straight segments between measured counts; smoothing can create misleading overshoots.
+        const path = coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
         return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
       };
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
