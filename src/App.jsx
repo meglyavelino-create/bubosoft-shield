@@ -130,10 +130,12 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
         <div className="line-chart-plot">
           {[0,1,2,3,4].map(n=><div className="line-chart-gridline" key={n} style={{top:`${n*25}%`}}/>)}
-          {hasData && data.coords.length > 0 ? <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
-            {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
-          </svg>
-          {hasData && data.coords.length > 0 && <div className="line-chart-markers" aria-hidden="true">{data.coords.map((p,i)=><span key={i} className="line-chart-marker" style={{left:`${p.x}%`,top:`${p.y}%`,backgroundColor:color}} title={`Count: ${p.value}`}/>)}</div>} : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
+          {hasData && data.coords.length > 0 ? <>
+            <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
+              {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
+            </svg>
+            <div className="line-chart-markers" aria-hidden="true">{data.coords.map((p,i)=><span key={i} className="line-chart-marker" style={{left:`${p.x}%`,top:`${p.y}%`,backgroundColor:color}} title={`Count: ${p.value}`}/>)}</div>
+          </> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
           <div className="line-chart-x"><span>{data.coords.length ? new Date(data.coords[0].createdAt).toLocaleDateString() : 'Start'}</span><span>{data.coords.length ? new Date(data.coords[data.coords.length-1].createdAt).toLocaleDateString() : 'Latest'}</span></div>
         </div>
       </div>;
