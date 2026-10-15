@@ -147,3 +147,19 @@
 .line-chart-markers{position:absolute;inset:0 0 20px;pointer-events:none;z-index:4}
 .line-chart-marker{position:absolute;width:5px;height:5px;border:1.25px solid #fff;border-radius:50%;box-shadow:0 0 0 .75px currentColor;transform:translate(-50%,-50%)}
 @media(max-width:700px){.line-chart-markers{bottom:18px}.line-chart-marker{width:4px;height:4px;border-width:1px;box-shadow:0 0 0 .5px currentColor}}
+
+/* Weekly, monthly and yearly production summary */
+.production-period-panel{margin-bottom:18px}
+.period-selector{display:flex;gap:4px;padding:4px;border:1px solid var(--border,#e3eee7);border-radius:10px;background:#f6faf7}
+.period-selector button{border:0;background:transparent;color:#64756d;border-radius:7px;padding:7px 12px;font:inherit;font-size:12px;cursor:pointer}
+.period-selector button.active{background:#fff;color:#18834f;font-weight:700;box-shadow:0 1px 4px rgba(22,70,43,.10)}
+.production-period-dates{display:flex;align-items:center;gap:7px;color:#81918a;font-size:11px;margin:2px 0 14px}
+.production-period-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.period-stat{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto auto;column-gap:10px;align-items:center;padding:14px;border:1px solid #e5efe8;border-radius:12px;background:#fbfdfb}
+.period-stat-icon{grid-row:1 / span 3;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px}
+.period-stat-icon.green{background:#e6f5ec;color:#238b55}
+.period-stat-icon.blue{background:#e8f1ff;color:#528bd3}
+.period-stat-label{font-size:12px;color:#5c7067}
+.period-stat strong{font-size:25px;line-height:1.2;color:#163f2e}
+.period-stat small{font-size:10px;color:#91a098}
+@media(max-width:700px){.production-period-panel .panel-head{align-items:flex-start;gap:12px;flex-direction:column}.period-selector{width:100%}.period-selector button{flex:1}.production-period-stats{grid-template-columns:1fr}.period-stat{padding:11px}.period-stat strong{font-size:22px}}
