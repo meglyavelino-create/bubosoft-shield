@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { onValue, ref } from 'firebase/database';
+import { database } from './firebase';
 import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
 
 const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Notifications', Bell], ['Settings', Settings]];
@@ -17,6 +19,15 @@ export default function App() {
   const [refreshCount, setRefreshCount] = useState(0);
   const [pillowCount, setPillowCount] = useState(0);
   const [pillowDispensing, setPillowDispensing] = useState(false);
+  const [machineData, setMachineData] = useState(null);
+  const [firebaseStatus, setFirebaseStatus] = useState('Connecting');
+  useEffect(() => {
+    const unsubscribe = onValue(ref(database, 'machine/latest'), (snapshot) => {
+      setMachineData(snapshot.exists() ? snapshot.val() : null);
+      setFirebaseStatus('Connected');
+    }, () => setFirebaseStatus('Connection error'));
+    return () => unsubscribe();
+  }, []);
   const go = (name) => { setPage(name); setMenu(false); setNotice(''); };
   const inform = (message) => setNotice(message);
   const refresh = () => { setRefreshCount(v => v + 1); inform('Demo data refreshed. Live readings will appear after Firebase and controller integration.'); };
@@ -28,11 +39,11 @@ export default function App() {
       <div className="side-bottom"><div className="help"><ShieldCheck/><div><b>Machine workspace</b><small>Monitoring prototype</small></div></div><div className="user"><div className="avatar">BS</div><div><b>System Operator</b><small>Preview account</small></div><ChevronDown size={16}/></div></div>
     </aside>
     {menu && <button className="scrim" aria-label="Close menu" onClick={() => setMenu(false)}/>}
-    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Demo mode</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
+    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Firebase: {firebaseStatus}</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
         {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount}/>}
-        {page === 'Live Monitoring' && <LiveMonitoring inform={inform}/>}
+        {page === 'Live Monitoring' && <LiveMonitoring inform={inform} machineData={machineData} firebaseStatus={firebaseStatus}/>}
         {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod}/>}
         {page === 'Notifications' && <Alerts filter={filter} setFilter={setFilter}/>}
         {page === 'Settings' && <SettingsPage inform={inform}/>}
@@ -51,11 +62,11 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
     </div>
   </>;
 }
-function LiveMonitoring({inform}) {
+function LiveMonitoring({inform, machineData, firebaseStatus}) {
   return <><PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
     <div className="notice"><Radio size={17}/><span><b>Demo mode:</b> values are not being read from physical sensors or Firebase.</span></div>
     <section className="panel stage-panel"><div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 5 production stages</span></div><div className="stage-grid">{stages.map(([name, desc], index)=><div className="stage-card" key={name}><div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index+1).padStart(2,"0")}</span></div><b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> Waiting for data</span></div>)}</div><div className="monitor-note"><div className="monitor-note-icon"><Radio size={17}/></div><div><b>What will appear here?</b><p>When the controller is connected, each stage will show its live state. The app monitors progress only; process controls remain on the Nextion HMI.</p></div></div></section>
-    <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> NOT CONNECTED</span></div><div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody><tr><td>Middle cotton laser</td><td>Cotton presence</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Bottom cotton laser</td><td>Cotton presence</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Half liquid sensor</td><td>Liquid level threshold</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Full liquid sensor</td><td>Liquid level threshold</td><td>—</td><td><span className="pill muted">No data</span></td></tr></tbody></table></div></section>
+    <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div><div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle cotton laser','Cotton presence'],['bottomCottonLaser','Bottom cotton laser','Cotton presence'],['halfLiquidSensor','Half liquid sensor','Liquid level threshold'],['fullLiquidSensor','Full liquid sensor','Liquid level threshold']].map(([key,name,purpose])=>{const value=machineData?.sensors?.[key]; return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{value === undefined || value === null ? '—' : String(value)}</td><td><span className={'pill '+(value === undefined || value === null ? 'muted' : 'good')}>{value === undefined || value === null ? 'No data' : 'Live'}</span></td></tr>;})}</tbody></table></div></section>
   </>;
 }
 function ProductionHistory({period,setPeriod}) {
