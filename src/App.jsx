@@ -115,6 +115,13 @@ function SettingsPage({inform}) {
         <div className="setting-toggle notification-fixed"><div><b>Process interrupted</b><small>Notify when the controller reports a process interruption.</small></div><span className="always-on">ALWAYS ON</span></div>
         <div className="sensor-note"><CircleAlert size={16}/> All three notification types are enabled by default. No selection is needed. Actual notifications will appear after Firebase and machine event integration are configured.</div>
       </section>
+      <section className="panel about-panel"><div className="panel-head"><div><h2>About</h2><p>Project information</p></div><div className="settings-icon"><Leaf size={18}/></div></div>
+        <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
+        <p className="about-description">A machine monitoring interface for a kapok fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
+        <div className="about-features"><span><CheckCircle2 size={14}/> Production stage monitoring</span><span><CheckCircle2 size={14}/> Cotton and liquid sensor status</span><span><CheckCircle2 size={14}/> Production history and notifications</span></div>
+        <div className="about-meta"><ConfigRow label="Interface version" value="Preview build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Data integration" value="Firebase setup pending"/></div>
+        <div className="sensor-note"><Radio size={16}/> Readings and event history will become available after the machine controller and Firebase are connected.</div>
+      </section>
       <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
         <ConfigRow label="Frontend hosting" value="Vercel"/>
         <ConfigRow label="Source control" value="GitHub"/>
@@ -131,13 +138,7 @@ function SettingsPage({inform}) {
         <ConfigRow label="Web app control" value="Monitoring only"/>
         <div className="sensor-note"><CircleAlert size={16}/> Do not rely on browser notification settings as a substitute for hardware safety behavior. Confirm sensor polarity and safety logic on the actual machine.</div>
       </section>
-      <section className="panel about-panel"><div className="panel-head"><div><h2>About</h2><p>Project information</p></div><div className="settings-icon"><Leaf size={18}/></div></div>
-        <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
-        <p className="about-description">A machine monitoring interface for a kapok fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
-        <div className="about-features"><span><CheckCircle2 size={14}/> Production stage monitoring</span><span><CheckCircle2 size={14}/> Cotton and liquid sensor status</span><span><CheckCircle2 size={14}/> Production history and notifications</span></div>
-        <div className="about-meta"><ConfigRow label="Interface version" value="Preview build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Data integration" value="Firebase setup pending"/></div>
-        <div className="sensor-note"><Radio size={16}/> Readings and event history will become available after the machine controller and Firebase are connected.</div>
-      </section>
+
 
     </div>
   </>;
