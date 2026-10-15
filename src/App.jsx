@@ -58,22 +58,32 @@ function LiveMonitoring({inform}) {
     <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> NOT CONNECTED</span></div><div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody><tr><td>Middle cotton laser</td><td>Cotton presence</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Bottom cotton laser</td><td>Cotton presence</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Half liquid sensor</td><td>Liquid level threshold</td><td>—</td><td><span className="pill muted">No data</span></td></tr><tr><td>Full liquid sensor</td><td>Liquid level threshold</td><td>—</td><td><span className="pill muted">No data</span></td></tr></tbody></table></div></section>
   </>;
 }
-function ProductionHistory({query,setQuery,period,setPeriod}) {
+function ProductionHistory({period,setPeriod}) {
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
-  return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Compare repellent output and completed pillows over time."><button className="btn light" onClick={()=>window.print()}><Download size={15}/> Print / Save</button></PageHeading>
+  const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
+  return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent output and completed pillows over time."><button className="btn light" onClick={()=>window.print()}><Download size={15}/> Print / Save</button></PageHeading>
     <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent produced" value="—" meta="Awaiting production records" tag="EMPTY"/><Stat icon={Package} tone="blue" label="Pillows produced" value="—" meta="Awaiting production records" tag="EMPTY"/><Stat icon={CheckCircle2} tone="purple" label="Completed" value="—" meta="Awaiting production logs" tag="EMPTY"/><Stat icon={AlertTriangle} tone="orange" label="Interrupted" value="—" meta="Awaiting production logs" tag="EMPTY"/></div>
-    <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Production output</h2><p>Repellent volume and pillow count for the selected period</p></div><select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select></div>
-      <div className="chart-legend"><span><i className="legend-repellent"/> Repellent produced <small>(mL or L after setup)</small></span><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
-      <div className="production-chart" role="img" aria-label={`Production output chart for ${period}; awaiting Firebase data`}>
+    <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent production</h2><p>Volume produced during the selected period</p></div>{periods}</div>
+      <div className="chart-legend"><span><i className="legend-repellent"/> Repellent produced <small>(mL or L after setup)</small></span></div>
+      <div className="production-chart" role="img" aria-label={`Repellent production chart for ${period}; awaiting Firebase data`}>
         <div className="chart-y-labels"><span>—</span><span>—</span><span>—</span><span>—</span></div>
         <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
-          <div className="chart-empty-state"><div className="chart-empty-icon"><Activity size={22}/></div><b>No production data yet</b><span>Connect Firebase to plot repellent volume and pillow counts.</span></div>
+          <div className="chart-empty-state"><div className="chart-empty-icon"><Droplets size={22}/></div><b>No repellent data yet</b><span>Recorded production volume will appear here after Firebase is connected.</span></div>
           <div className="chart-x-labels">{labels.map(label=><span key={label}>{label}</span>)}</div>
         </div>
       </div>
-      <div className="chart-footnote"><Radio size={14}/> This chart will display recorded machine data. No sample values are shown.</div>
     </section>
-    <section className="panel history-panel"><div className="panel-head"><div><h2>Production records</h2><p>Saved production events will appear here after database integration.</p></div></div><div className="table-tools"><div className="searchbox"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search batch ID or process..." /></div><button className="btn light" onClick={()=>setQuery('')}><Filter size={15}/> Clear filter</button></div><div className="table-wrap"><table><thead><tr><th>Batch ID</th><th>Started</th><th>Completed</th><th>Duration</th><th>Final status</th></tr></thead><tbody>{query ? <tr><td colSpan="5" className="empty-cell">No matching records for “{query}”.</td></tr> : <tr><td colSpan="5" className="empty-cell"><History size={23}/><b>No production records yet</b><span>Once Firebase is connected, saved production events will appear here.</span></td></tr>}</tbody></table></div></section>
+    <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillow production</h2><p>Completed pillows during the selected period</p></div>{periods}</div>
+      <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
+      <div className="production-chart" role="img" aria-label={`Pillow production chart for ${period}; awaiting Firebase data`}>
+        <div className="chart-y-labels"><span>—</span><span>—</span><span>—</span><span>—</span></div>
+        <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
+          <div className="chart-empty-state"><div className="chart-empty-icon"><Package size={22}/></div><b>No pillow data yet</b><span>Confirmed completed pillows will appear here after Firebase is connected.</span></div>
+          <div className="chart-x-labels">{labels.map(label=><span key={label}>{label}</span>)}</div>
+        </div>
+      </div>
+      <div className="chart-footnote"><Radio size={14}/> Charts show recorded machine data only; no sample values are displayed.</div>
+    </section>
   </>;
 }
 function Alerts({filter,setFilter}) {
