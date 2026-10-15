@@ -97,27 +97,37 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
     <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent containers processed" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
-    <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers</h2><p>Containers processed during the selected period</p></div>{periods}</div>
-      <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
-      <div className="production-chart" role="img" aria-label={`Repellent container chart for ${period}; awaiting Firebase data`}>
-        <div className="chart-y-labels"><span>—</span><span>—</span><span>—</span><span>—</span></div>
-        <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
-          <div className="chart-empty-state"><div className="chart-empty-icon"><Droplets size={22}/></div><b>No container data yet</b><span>Recorded container counts will appear here when the production process reports them to Firebase.</span></div>
-          <div className="chart-x-labels">{labels.map(label=><span key={label}>{label}</span>)}</div>
-        </div>
-      </div>
-    </section>
-    <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillow production</h2><p>Completed pillows during the selected period</p></div>{periods}</div>
-      <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
-      <div className="production-chart" role="img" aria-label={`Pillow production chart for ${period}; awaiting Firebase data`}>
-        <div className="chart-y-labels"><span>—</span><span>—</span><span>—</span><span>—</span></div>
-        <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
-          <div className="chart-empty-state"><div className="chart-empty-icon"><Package size={22}/></div><b>No pillow data yet</b><span>Confirmed completed pillows will appear here after Firebase is connected.</span></div>
-          <div className="chart-x-labels">{labels.map(label=><span key={label}>{label}</span>)}</div>
-        </div>
-      </div>
-      <div className="chart-footnote"><Radio size={14}/> Charts show recorded machine data only; no sample values are shown.</div>
-    </section>
+    {(() => {
+      const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
+      const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
+      const hasContainerTotal = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
+      const hasPillowTotal = productionSummary && (productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
+      const containerMax = Math.max(4, Math.ceil(containerTotal / 4) * 4);
+      const pillowMax = Math.max(4, Math.ceil(pillowTotal / 4) * 4);
+      return <>
+        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Total repellent containers</h2><p>Total containers processed so far</p></div></div>
+          <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
+          <div className="production-chart" role="img" aria-label={`Total repellent containers processed: ${hasContainerTotal ? containerTotal : 'no data'}`}>
+            <div className="chart-y-labels"><span>{containerMax}</span><span>{Math.round(containerMax*0.75)}</span><span>{Math.round(containerMax*0.5)}</span><span>{Math.round(containerMax*0.25)}</span></div>
+            <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
+              {hasContainerTotal ? <div className="count-chart-bars"><div className="count-chart-column"><span className="count-chart-value">{containerTotal}</span><div className="count-chart-track"><div className="count-chart-bar repellent-bar" style={{height: `${containerTotal === 0 ? 0 : Math.max(4, containerTotal/containerMax*100)}%`}}/></div><small>Total</small></div></div> : <div className="chart-empty-state"><div className="chart-empty-icon"><Droplets size={22}/></div><b>No container data yet</b><span>Container counts will appear after the ESP32 sends the container-count fields to Firebase.</span></div>}
+              <div className="chart-x-labels"><span>Total</span></div>
+            </div>
+          </div>
+        </section>
+        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Total pillows produced</h2><p>Total completed pillows so far</p></div></div>
+          <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
+          <div className="production-chart" role="img" aria-label={`Total pillows produced: ${hasPillowTotal ? pillowTotal : 'no data'}`}>
+            <div className="chart-y-labels"><span>{pillowMax}</span><span>{Math.round(pillowMax*0.75)}</span><span>{Math.round(pillowMax*0.5)}</span><span>{Math.round(pillowMax*0.25)}</span></div>
+            <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
+              {hasPillowTotal ? <div className="count-chart-bars"><div className="count-chart-column"><span className="count-chart-value">{pillowTotal}</span><div className="count-chart-track"><div className="count-chart-bar pillow-bar" style={{height: `${pillowTotal === 0 ? 0 : Math.max(4, pillowTotal/pillowMax*100)}%`}}/></div><small>Total</small></div></div> : <div className="chart-empty-state"><div className="chart-empty-icon"><Package size={22}/></div><b>No pillow data yet</b><span>Pillow counts will appear after the ESP32 sends the pillow-count fields to Firebase.</span></div>}
+              <div className="chart-x-labels"><span>Total</span></div>
+            </div>
+          </div>
+          <div className="chart-footnote"><Radio size={14}/> Graphs show total counts stored in the Firebase production summary.</div>
+        </section>
+      </>;
+    })()}
     <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each production event, recorded by the machine</p></div></div>
       <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{productionHistory.length ? productionHistory.map(item => <tr key={item.id}><td>{item.event || item.type || 'Machine event'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No production events yet</b><span>New records will appear when written to production/history.</span></td></tr>}</tbody></table></div>
       <div className="chart-footnote"><Radio size={14}/> Event timestamps will come from recorded controller events; no dates or times are fabricated.</div>
