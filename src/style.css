@@ -101,3 +101,14 @@
 .stage-complete>em{color:#4278bf;font-style:normal}
 .stage-interrupted .stage-icon,.stage-card-interrupted .stage-card-icon{background:#fff0ed;color:#c94d3f;border-color:#f6d5ce}
 .stage-interrupted>span,.stage-card-interrupted .stage-waiting{color:#c94d3f;font-weight:800}
+
+
+/* Count-based production charts driven by Firebase summary totals */
+.count-chart-bars{position:absolute;inset:0 0 31px;display:flex;align-items:stretch;justify-content:center;z-index:1}
+.count-chart-column{height:100%;width:min(140px,45%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px}
+.count-chart-value{font-size:12px;font-weight:800;color:#486b54}
+.count-chart-track{height:calc(100% - 35px);width:38px;display:flex;align-items:flex-end;justify-content:center}
+.count-chart-bar{width:100%;min-height:0;border-radius:6px 6px 0 0;transition:height .2s ease}
+.repellent-bar{background:#2d9660}
+.pillow-bar{background:#5c93d6}
+.count-chart-column>small{font-size:9px;color:#91a096}
