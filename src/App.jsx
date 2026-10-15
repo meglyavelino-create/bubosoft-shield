@@ -119,19 +119,29 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
   </>;
 }
 function LiveMonitoring({inform, machineData, firebaseStatus}) {
-  const fillingStatus = machineData?.fillingStatus || machineData?.fillingState || machineData?.cottonFillingStatus || ((machineData?.currentProcess || '').toLowerCase() === 'cotton filling' ? 'Ready to Fill' : 'Waiting for data');
-  const pillows = machineData?.pillowsProduced ?? machineData?.pillowCount ?? '—';
+  const sensors = machineData?.sensors || {};
+  const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   return <>
     <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
+    <section className="panel stage-panel">
+      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 5 production stages</span></div>
+      <div className="stage-grid">{stages.map(([name, desc], index) => {
+        const active = machineData?.currentProcess === name || machineData?.processStage === name;
+        const completed = Number(machineData?.completedStageIndex || 0) > index || machineData?.lastEventType === 'process_completed';
+        const interrupted = machineData?.lastEventType === 'process_interrupted' && machineData?.currentProcess === 'Interrupted';
+        const label = interrupted ? 'Interrupted' : active ? 'Ongoing' : completed ? 'Completed' : machineData?.currentProcess === 'Standby' ? 'Standby' : 'Waiting for stage';
+        return <div className={'stage-card ' + (active ? 'stage-card-active' : completed ? 'stage-card-complete' : interrupted ? 'stage-card-interrupted' : '')} key={name}>
+          <div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index + 1).padStart(2, '0')}</span></div>
+          <b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> {label}</span>
+        </div>;
+      })}</div>
+    </section>
     <section className="panel">
-      <div className="panel-head"><div><h2>Cotton filling status</h2><p>Live state reported by the controller through Firebase.</p></div><span className="monitor-count"><Activity size={14}/> Filling cycle</span></div>
-      <div className="metrics summary-metrics"><div><small>Filling status</small><b>{fillingStatus}</b><em>START begins a pillow cycle; STOP records one pillow once.</em></div><div><small>Total pillows produced</small><b>{pillows}</b><em>Updates when the controller saves a completed filling cycle.</em></div></div>
-    </section>
-    <section className="panel stage-panel"><div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 5 production stages</span></div>
-      <div className="stage-grid">{stages.map(([name, desc], index) => { const active = machineData?.currentProcess === name || machineData?.processStage === name; const completed = Number(machineData?.completedStageIndex || 0) > index || machineData?.lastEventType === 'process_completed'; const label = active ? 'Running now' : completed ? 'Completed' : 'Waiting for stage'; return <div className={'stage-card '+(active?'stage-card-active':completed?'stage-card-complete':'')} key={name}><div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index+1).padStart(2,'0')}</span></div><b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> {label}</span></div>; })}</div>
-    </section>
-    <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div>
-      <div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle Cotton Laser','Cotton Level'],['bottomCottonLaser','Bottom Cotton Laser','Cotton Level'],['halfLiquidSensor','Half Liquid Sensor','Liquid Level'],['fullLiquidSensor','Full Liquid Sensor','Liquid Level']].map(([key,name,purpose]) => { const value=machineData?.sensors?.[key]; return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{value==null?'—':typeof value==='boolean'?(value?'HIGH':'LOW'):String(value)}</td><td><span className={'pill '+(value==null?'muted':'good')}>{value==null?'No data':'Live'}</span></td></tr>; })}</tbody></table></div>
+      <div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div>
+      <div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle Cotton Laser','Cotton Level'],['bottomCottonLaser','Bottom Cotton Laser','Cotton Level'],['halfLiquidSensor','Half Liquid Sensor','Liquid Level'],['fullLiquidSensor','Full Liquid Sensor','Liquid Level']].map(([key,name,purpose]) => {
+        const value = sensors[key];
+        return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{signalLabel(value)}</td><td><span className={'pill ' + (value === undefined || value === null ? 'muted' : 'good')}>{value === undefined || value === null ? 'No data' : 'Live'}</span></td></tr>;
+      })}</tbody></table></div>
     </section>
   </>;
 }
