@@ -63,3 +63,30 @@
 .notification-popover-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:25px 12px;color:#8a9b90;font-size:10px}
 .notification-popover-all{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:12px;border:0;background:#f7faf7;color:#26744a;font-size:10px;font-weight:800}
 @media(max-width:700px){.notification-popover{right:-40px;width:320px}.bell-count{top:-5px;right:-5px}}
+
+
+/* Unread/read notification states */
+.notification-popover-head-actions{display:flex;align-items:center;gap:7px}
+.notification-popover-head-actions button{white-space:nowrap}
+.notification-popover-head-actions .mark-all-read{width:auto;padding:6px 8px;background:#eaf6ee;color:#26744a;font-size:9px;font-weight:800}
+.notification-popover-item{display:flex;align-items:center;gap:6px}
+.notification-popover-item-main{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;padding:0;border:0;background:transparent;text-align:left;cursor:pointer}
+.notification-popover-item.is-unread{background:#f8fcf9}
+.notification-popover-item.is-unread .notification-popover-copy b{color:#244d32}
+.notification-popover-item.is-read .notification-popover-copy b{font-weight:500;color:#77877c}
+.notification-popover-item.is-read .notification-popover-icon{background:#f0f3f0;color:#8a9a8e}
+.notification-mark-read{flex-shrink:0;border:1px solid #dce9df;border-radius:6px;padding:5px 6px;background:#fff;color:#287348;font-size:8px;font-weight:700}
+.notification-mark-read:hover,.mark-all-page:hover{background:#eaf6ee}
+.unread-summary{display:inline-flex;align-items:center;margin-left:7px;padding:4px 7px;border-radius:99px;background:#e7f6eb;color:#26744a;font-size:9px;font-weight:800;vertical-align:middle}
+.notification-page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.show-read-toggle{display:flex;align-items:center;gap:5px;color:#75887b;font-size:10px;white-space:nowrap}
+.show-read-toggle input{accent-color:#27834b}
+.mark-all-page,.mark-read-button{border:1px solid #dce9df;border-radius:7px;padding:8px 10px;background:#fff;color:#287348;font-size:10px;font-weight:700;cursor:pointer}
+.event-row.event-unread{background:#fbfefc}
+.event-row.event-unread .event-copy b{color:#294d35}
+.event-row.event-read .event-copy b{font-weight:500;color:#718078}
+.read-state{display:inline-flex;margin-top:4px;font-size:8px;color:#83968a}
+.event-unread .read-state{color:#26744a;font-weight:800}
+.event-read .event-icon{opacity:.7}
+.mark-read-button{flex-shrink:0}
+@media(max-width:760px){.notification-page-actions{justify-content:flex-start}.notification-popover-item{align-items:flex-start}.notification-mark-read{font-size:8px}}
