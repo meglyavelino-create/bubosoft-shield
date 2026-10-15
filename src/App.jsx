@@ -125,13 +125,6 @@ function SettingsPage({inform}) {
         <ConfigRow label="Last data received" value="No data yet"/>
         <div className="sensor-note"><ShieldCheck size={16}/> The web app is monitoring-only. Machine operation and safety interlocks remain on the Nextion HMI and controller.</div>
       </section>
-      <section className="panel"><div className="panel-head"><div><h2>Safety information</h2><p>Read-only notes for machine operation</p></div><div className="settings-icon"><ShieldCheck size={17}/></div></div>
-        <ConfigRow label="Cotton monitoring" value="Middle and bottom laser sensors"/>
-        <ConfigRow label="Liquid monitoring" value="Half and full level sensors"/>
-        <ConfigRow label="Machine controls" value="Nextion HMI only"/>
-        <ConfigRow label="Web app control" value="Monitoring only"/>
-        <div className="sensor-note"><CircleAlert size={16}/> Do not rely on browser notification settings as a substitute for hardware safety behavior. Confirm sensor polarity and safety logic on the actual machine.</div>
-      </section>
 
 
     </div>
