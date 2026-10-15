@@ -126,19 +126,19 @@
 @media(max-width:700px){.line-chart-wrap{grid-template-columns:27px minmax(0,1fr);min-height:230px}.line-chart-plot{height:230px}.line-chart-y,.line-chart-x span{font-size:8px}}
 
 
-/* Responsive compact production line charts */
-.line-chart-wrap{min-height:150px;grid-template-columns:30px minmax(0,1fr);margin-top:0}
-.line-chart-plot{height:145px;padding-bottom:22px}
-.line-chart-y{padding-bottom:22px;font-size:8px}
-.line-chart-svg{bottom:22px;height:calc(100% - 22px)}
-.line-chart-x span{font-size:8px}
-.production-chart-panel{padding:18px 20px 12px}
-@media(max-width:700px){
-.line-chart-wrap{min-height:125px;grid-template-columns:25px minmax(0,1fr)}
-.line-chart-plot{height:120px;padding-bottom:20px}
-.line-chart-y{padding-bottom:20px}
+/* Compact responsive production line charts on desktop and mobile */
+.line-chart-wrap{min-height:115px;grid-template-columns:30px minmax(0,1fr);margin-top:0}
+.line-chart-plot{height:110px;padding-bottom:20px}
+.line-chart-y{padding-bottom:20px;font-size:8px}
 .line-chart-svg{bottom:20px;height:calc(100% - 20px)}
-.production-chart-panel{padding:14px 12px 10px}
+.line-chart-x span{font-size:8px}
+.production-chart-panel{padding:16px 20px 10px}
+@media(max-width:700px){
+.line-chart-wrap{min-height:100px;grid-template-columns:25px minmax(0,1fr)}
+.line-chart-plot{height:95px;padding-bottom:18px}
+.line-chart-y{padding-bottom:18px}
+.line-chart-svg{bottom:18px;height:calc(100% - 18px)}
+.production-chart-panel{padding:12px 12px 8px}
 .production-chart-panel .panel-head h2{font-size:13px}
 .production-chart-panel .panel-head p{font-size:10px}
 }
