@@ -129,7 +129,7 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
         const active = machineData?.currentProcess === name || machineData?.processStage === name;
         const completed = Number(machineData?.completedStageIndex || 0) > index || machineData?.lastEventType === 'process_completed';
         const interrupted = machineData?.lastEventType === 'process_interrupted' && machineData?.currentProcess === 'Interrupted';
-        const label = interrupted ? 'Interrupted' : active ? 'Ongoing' : completed ? 'Completed' : machineData?.currentProcess === 'Standby' ? 'Standby' : 'Waiting for stage';
+        const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' : machineData?.currentProcess === 'Standby' ? 'Standby' : 'Waiting for stage';
         return <div className={'stage-card ' + (active ? 'stage-card-active' : completed ? 'stage-card-complete' : interrupted ? 'stage-card-interrupted' : '')} key={name}>
           <div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index + 1).padStart(2, '0')}</span></div>
           <b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> {label}</span>
