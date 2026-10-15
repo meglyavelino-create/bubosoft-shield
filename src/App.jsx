@@ -97,7 +97,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
-    <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent containers processed" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
+    <div className="stats"><Stat icon={Droplets} tone="green" label="Overall repellent containers" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="Lifetime total saved in Firebase" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Overall pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="Lifetime total saved in Firebase" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
     {(() => {
       const now = new Date();
       const start = new Date(now);
@@ -124,20 +124,32 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       let knownPillowEvents = 0;
       all.forEach(item => {
         const timestamp = Number(item.createdAt);
+        const inRange = timestamp >= start.getTime() && timestamp <= end.getTime();
         const rawContainers = item.repellentContainerCount ?? item.repellentContainersProcessed ?? item.containerCountAfter;
         const rawPillows = item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
         const currentContainers = rawContainers !== undefined && rawContainers !== null && Number.isFinite(Number(rawContainers)) ? Number(rawContainers) : null;
         const currentPillows = rawPillows !== undefined && rawPillows !== null && Number.isFinite(Number(rawPillows)) ? Number(rawPillows) : null;
-        if (currentContainers !== null) {
-          const delta = previousContainers === null ? (currentContainers === 1 ? 1 : 0) : Math.max(0, currentContainers - previousContainers);
-          if (timestamp >= start.getTime() && timestamp <= end.getTime()) { containers += delta; knownContainerEvents++; }
-          previousContainers = currentContainers;
+
+        // Prefer explicit per-event output deltas when available. This avoids guessing
+        // which product completed when both lifetime counters are stored in a snapshot.
+        const explicitContainerDelta = item.repellentContainerDelta ?? item.containerDelta;
+        const explicitPillowDelta = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta;
+        if (explicitContainerDelta !== undefined && explicitContainerDelta !== null && Number.isFinite(Number(explicitContainerDelta))) {
+          const delta = Math.max(0, Number(explicitContainerDelta));
+          if (inRange) { containers += delta; if (delta > 0) knownContainerEvents++; }
+        } else if (currentContainers !== null) {
+          const delta = previousContainers === null ? 0 : Math.max(0, currentContainers - previousContainers);
+          if (inRange) { containers += delta; if (delta > 0) knownContainerEvents++; }
         }
-        if (currentPillows !== null) {
-          const delta = previousPillows === null ? (currentPillows === 1 ? 1 : 0) : Math.max(0, currentPillows - previousPillows);
-          if (timestamp >= start.getTime() && timestamp <= end.getTime()) { pillows += delta; knownPillowEvents++; }
-          previousPillows = currentPillows;
+        if (explicitPillowDelta !== undefined && explicitPillowDelta !== null && Number.isFinite(Number(explicitPillowDelta))) {
+          const delta = Math.max(0, Number(explicitPillowDelta));
+          if (inRange) { pillows += delta; if (delta > 0) knownPillowEvents++; }
+        } else if (currentPillows !== null) {
+          const delta = previousPillows === null ? 0 : Math.max(0, currentPillows - previousPillows);
+          if (inRange) { pillows += delta; if (delta > 0) knownPillowEvents++; }
         }
+        if (currentContainers !== null) previousContainers = currentContainers;
+        if (currentPillows !== null) previousPillows = currentPillows;
       });
       const dateOptions = {month:'short', day:'numeric', year:'numeric'};
       const rangeText = `${start.toLocaleDateString(undefined,dateOptions)} – ${now.toLocaleDateString(undefined,dateOptions)}`;
