@@ -117,16 +117,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
           }
           return null;
         }).filter(Boolean);
-        let points = snapshots;
-        if (!points.length) {
-          points = completedEvents.map((item, i) => ({
-            value: Math.min(i + 1, Math.max(0, total)),
-            createdAt: Number(item.createdAt),
-            estimated: true
-          }));
-        }
-        if (!points.length && total > 0) points = [{ value: total, createdAt: Date.now(), estimated: true }];
-        if (points.length === 1) points = [{ value: 0, createdAt: points[0].createdAt, estimated: true }, points[0]];
+        const points = snapshots;
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
         return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total, hasSnapshots:snapshots.length > 0};
@@ -147,13 +138,13 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       return <>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers over time</h2><p>Container count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
-          <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. New points use saved count snapshots; older history cannot be reconstructed exactly.</div>
+          <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && containerLine.hasSnapshots)}/>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Only events with saved cumulative count snapshots are plotted; older history remains in the table.</div>
         </section>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillows produced over time</h2><p>Pillow count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
-          <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Exact historical points appear as new completion events save count snapshots.</div>
+          <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && pillowLine.hasSnapshots)}/>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Only recorded cumulative count snapshots are plotted; older history remains in the table.</div>
         </section>
       </>;
     })()}
