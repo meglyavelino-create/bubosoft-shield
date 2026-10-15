@@ -22,11 +22,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const expectedKey = process.env.ESP32_DEVICE_KEY;
-  const suppliedKey = req.headers['x-device-key'];
-  if (!expectedKey || !suppliedKey || suppliedKey !== expectedKey) {
-    return res.status(401).json({ error: 'Unauthorized device' });
-  }
+  // Device-key authentication is disabled for this prototype endpoint.
+  // Anyone who discovers this URL may be able to write telemetry.
 
   try {
     const body = req.body || {};
@@ -51,7 +48,7 @@ export default async function handler(req, res) {
       if (!body.data || typeof body.data !== 'object') {
         return res.status(400).json({ error: 'Missing data object' });
       }
-      await db.ref('production/summary').set({
+      await db.ref('production/summary').update({
         ...body.data,
         receivedAt: now,
         demoMode: body.data.demoMode === true
