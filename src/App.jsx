@@ -102,14 +102,47 @@ function Alerts({filter,setFilter}) {
   </>;
 }
 function SettingsPage({inform}) {
-  const [volume,setVolume] = useState('1.50');
-  const [adminOnly,setAdminOnly] = useState(true);
-  const [autoStop,setAutoStop] = useState(true);
+  const [cottonAlert,setCottonAlert] = useState(true);
+  const [completedAlert,setCompletedAlert] = useState(true);
+  const [interruptedAlert,setInterruptedAlert] = useState(true);
   const [saved,setSaved] = useState(false);
-  const save = () => { setSaved(true); inform('Settings saved in this browser session only. Firebase persistence has not been configured.'); };
-  return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="Review proposed process settings and access controls."/>
-    <div className="settings-grid"><section className="panel"><div className="panel-head"><div><h2>Dispensing configuration</h2><p>Prototype values for future app-to-device settings.</p></div><div className="settings-icon"><Droplets size={17}/></div></div><label className="field-label" htmlFor="volume">Target liquid amount per dispense (mL)</label><input id="volume" className="field" type="number" min="0.1" max="20" step="0.1" value={volume} onChange={e=>{setVolume(e.target.value);setSaved(false)}}/><small className="field-help">This is a UI-only setting. It does not command a pump.</small><div className="setting-toggle"><div><b>Require admin approval</b><small>Restrict changes to authorized administrators once login is implemented.</small></div><button className={'toggle '+(adminOnly?'on':'')} onClick={()=>{setAdminOnly(v=>!v);setSaved(false)}} aria-pressed={adminOnly}><i/></button></div><div className="setting-toggle"><div><b>Stop on low cotton</b><small>Proposed safety behavior when the cotton sensor reports insufficient material.</small></div><button className={'toggle '+(autoStop?'on':'')} onClick={()=>{setAutoStop(v=>!v);setSaved(false)}} aria-pressed={autoStop}><i/></button></div><button className="btn primary save-btn" onClick={save}><Check size={15}/> Save draft settings</button>{saved&&<p className="save-hint">Draft saved for this browser session.</p>}</section>
-    <section className="panel"><div className="panel-head"><div><h2>System configuration</h2><p>Planned connection details</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div><ConfigRow label="Frontend hosting" value="Vercel"/><ConfigRow label="Source control" value="GitHub"/><ConfigRow label="Database" value="Firebase · not configured"/><ConfigRow label="Machine controller" value="Arduino Mega 2560"/><ConfigRow label="Network controller" value="ESP32"/><ConfigRow label="Live status" value="Not connected"/><div className="sensor-note"><ShieldCheck size={16}/> Do not store Firebase service-account secrets in this frontend repository.</div></section></div>
+  const save = () => {
+    setSaved(true);
+    inform('Notification preferences saved for this browser session only. Firebase persistence is not configured yet.');
+  };
+  const toggleRow = (title,description,enabled,setEnabled) => <div className="setting-toggle"><div><b>{title}</b><small>{description}</small></div><button type="button" className={'toggle '+(enabled?'on':'')} onClick={()=>{setEnabled(v=>!v);setSaved(false)}} aria-pressed={enabled} aria-label={title}><i/></button></div>;
+  return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="Configure notification preferences and review system connection information."/>
+    <div className="settings-grid">
+      <section className="panel"><div className="panel-head"><div><h2>Notification settings</h2><p>Choose which machine events should appear in Notifications.</p></div><div className="settings-icon"><Bell size={17}/></div></div>
+        {toggleRow('Cotton is empty','Notify when the cotton sensors report insufficient cotton.',cottonAlert,setCottonAlert)}
+        {toggleRow('Process completed','Notify when the controller reports a successful process completion.',completedAlert,setCompletedAlert)}
+        {toggleRow('Process interrupted','Notify when the controller reports a process interruption.',interruptedAlert,setInterruptedAlert)}
+        <div className="sensor-note"><CircleAlert size={16}/> These switches currently save only in this browser session. Notifications will be generated from real machine events after Firebase integration.</div>
+        <button className="btn primary save-btn" onClick={save}><CheckCircle2 size={15}/> Save notification preferences</button>{saved&&<p className="save-hint">Preferences saved for this session.</p>}
+      </section>
+      <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
+        <ConfigRow label="Frontend hosting" value="Vercel"/>
+        <ConfigRow label="Source control" value="GitHub"/>
+        <ConfigRow label="Database" value="Firebase · not connected"/>
+        <ConfigRow label="Machine controller" value="Arduino Mega 2560"/>
+        <ConfigRow label="Network controller" value="ESP32 · not connected"/>
+        <ConfigRow label="Last data received" value="No data yet"/>
+        <div className="sensor-note"><ShieldCheck size={16}/> The web app is monitoring-only. Machine operation and safety interlocks remain on the Nextion HMI and controller.</div>
+      </section>
+      <section className="panel"><div className="panel-head"><div><h2>Safety information</h2><p>Read-only notes for machine operation</p></div><div className="settings-icon"><ShieldCheck size={17}/></div></div>
+        <ConfigRow label="Cotton monitoring" value="Middle and bottom laser sensors"/>
+        <ConfigRow label="Liquid monitoring" value="Half and full level sensors"/>
+        <ConfigRow label="Machine controls" value="Nextion HMI only"/>
+        <ConfigRow label="Web app control" value="Monitoring only"/>
+        <div className="sensor-note"><CircleAlert size={16}/> Do not rely on browser notification settings as a substitute for hardware safety behavior. Confirm sensor polarity and safety logic on the actual machine.</div>
+      </section>
+      <section className="panel"><div className="panel-head"><div><h2>User access</h2><p>Planned account permissions</p></div><div className="settings-icon"><ShieldCheck size={17}/></div></div>
+        <ConfigRow label="Authentication" value="Not configured"/>
+        <ConfigRow label="Administrator role" value="Planned"/>
+        <ConfigRow label="Operator access" value="Monitoring and history"/>
+        <div className="sensor-note"><Radio size={16}/> User roles can be enforced after authentication and database security rules are configured.</div>
+      </section>
+    </div>
   </>;
 }
 function ConfigRow({label,value}) { return <div className="config-row"><span>{label}</span><b>{value}</b></div>; }
