@@ -30,7 +30,6 @@ const getStageState = (machineData, name, index, substages = []) => {
   const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' : 'Waiting for stage';
   return { active, completed, interrupted, label };
 };
-};
 const sampleEvents = [
   {time:'No records yet', title:'Production history is empty', detail:'Completed batches will appear here after Firebase is connected.', type:'info'},
 ];
