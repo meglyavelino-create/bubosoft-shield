@@ -20,13 +20,19 @@ export default function App() {
   const [pillowCount, setPillowCount] = useState(0);
   const [pillowDispensing, setPillowDispensing] = useState(false);
   const [machineData, setMachineData] = useState(null);
+  const [productionSummary, setProductionSummary] = useState(null);
+  const [productionHistory, setProductionHistory] = useState([]);
+  const [notificationData, setNotificationData] = useState([]);
   const [firebaseStatus, setFirebaseStatus] = useState('Connecting');
   useEffect(() => {
     const unsubscribe = onValue(ref(database, 'machine/latest'), (snapshot) => {
       setMachineData(snapshot.exists() ? snapshot.val() : null);
       setFirebaseStatus('Connected');
     }, () => setFirebaseStatus('Connection error'));
-    return () => unsubscribe();
+    const offSummary = onValue(ref(database, 'production/summary'), snap => setProductionSummary(snap.exists() ? snap.val() : null));
+    const offHistory = onValue(ref(database, 'production/history'), snap => { const val = snap.exists() ? snap.val() : {}; setProductionHistory(Object.entries(val).map(([id,item]) => ({id,...item})).sort((a,b) => Number(b.createdAt||0)-Number(a.createdAt||0))); });
+    const offNotifications = onValue(ref(database, 'notifications'), snap => { const val = snap.exists() ? snap.val() : {}; setNotificationData(Object.entries(val).map(([id,item]) => ({id,...item})).sort((a,b) => Number(b.createdAt||0)-Number(a.createdAt||0))); });
+    return () => { unsubscribe(); offSummary(); offHistory(); offNotifications(); };
   }, []);
   const go = (name) => { setPage(name); setMenu(false); setNotice(''); };
   const inform = (message) => setNotice(message);
@@ -42,17 +48,17 @@ export default function App() {
     <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Firebase: {firebaseStatus}</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount} machineData={machineData} firebaseStatus={firebaseStatus}/>}
+        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount} machineData={machineData} productionSummary={productionSummary} productionHistory={productionHistory} firebaseStatus={firebaseStatus}/>}
         {page === 'Live Monitoring' && <LiveMonitoring inform={inform} machineData={machineData} firebaseStatus={firebaseStatus}/>}
-        {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod}/>}
-        {page === 'Notifications' && <Alerts filter={filter} setFilter={setFilter}/>}
+        {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod} productionSummary={productionSummary} productionHistory={productionHistory}/>}
+        {page === 'Notifications' && <Alerts filter={filter} setFilter={setFilter} notificationData={notificationData}/>}
         {page === 'Settings' && <SettingsPage inform={inform} machineData={machineData} firebaseStatus={firebaseStatus}/>}
         <footer>© 2026 BUBOSOFT SHIELD <span><ShieldCheck size={14}/> Machine monitoring interface · Preview build 0.2.0</span></footer>
       </div></main></div>;
 }
 function PageHeading({eyebrow='SMART MACHINE MONITORING', title, subtitle, children}) { return <div className="welcome"><div><div className="eyebrow"><i/> {eyebrow}</div><h1>{title}</h1><p>{subtitle}</p></div>{children && <div className="actions">{children}</div>}</div>; }
 function SectionTitle({title, subtitle, right}) { return <div className="section-title"><div><h2>{title}</h2><p>{subtitle}</p></div>{right}</div>; }
-function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillowCount, machineData, firebaseStatus}) {
+function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillowCount, machineData, productionSummary, productionHistory, firebaseStatus}) {
   const sensors = machineData?.sensors || {};
   const hasCottonData = typeof sensors.middleCottonLaser === 'boolean' || typeof sensors.bottomCottonLaser === 'boolean';
   const hasLiquidData = typeof sensors.halfLiquidSensor === 'boolean' || typeof sensors.fullLiquidSensor === 'boolean';
@@ -62,9 +68,9 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
   return <><PageHeading title="Good day, Operator" subtitle="Monitor your kapok processing and repellent production system." />
     <SectionTitle title="System overview" subtitle="Live indicators from Firebase" right={<span className="sample"><i/> {firebaseStatus === 'Connected' && machineData ? (machineData.demoMode ? 'DEMO DATA' : 'LIVE FIREBASE DATA') : firebaseStatus.toUpperCase()}</span>}/>
     <div className="stats"><Stat icon={Cpu} tone="green" label="Machine status" value={machineLabel} meta={machineData ? (machineData.demoMode ? 'Simulated ESP32 reading' : 'Latest controller reading') : 'Waiting for machine/latest'} tag={machineData ? 'RECEIVING' : 'NO DATA'}/><Stat icon={Layers3} tone="blue" label="Current process" value={machineData?.currentProcess || 'Not reported'} meta={machineData?.processStage || 'No active stage reported'} tag={machineData?.currentProcess ? 'ACTIVE' : 'UNKNOWN'}/><Stat icon={Package} tone="orange" label="Cotton supply" value={!hasCottonData ? 'No data' : cottonReady ? 'Cotton detected' : 'Insufficient cotton'} meta={`Middle: ${sensors.middleCottonLaser === undefined ? '—' : sensors.middleCottonLaser} · Bottom: ${sensors.bottomCottonLaser === undefined ? '—' : sensors.bottomCottonLaser}`} tag={hasCottonData ? (cottonReady ? 'READY' : 'CHECK') : 'NO DATA'}/><Stat icon={Droplets} tone="purple" label="Liquid system" value={liquidLabel} meta={`Half: ${sensors.halfLiquidSensor === undefined ? '—' : sensors.halfLiquidSensor} · Full: ${sensors.fullLiquidSensor === undefined ? '—' : sensors.fullLiquidSensor}`} tag={hasLiquidData ? 'SENSOR DATA' : 'NO DATA'}/></div>
-    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>No active batch</b><small>Production stages will update when machine telemetry is connected.</small></div><span>STANDBY</span></div>{stages.map(([name, desc]) => <div className="stage" key={name}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>Waiting</span><em>—</em></div>)}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
+    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>{machineData?.currentProcess || 'No active batch reported'}</b><small>{machineData?.processStage || 'Detailed process-stage data has not been sent by the ESP32 yet.'}</small></div><span>{machineData ? 'CONNECTED' : 'STANDBY'}</span></div>{stages.map(([name, desc]) => <div className="stage" key={name}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>{machineData?.currentProcess === name ? 'Running' : 'Not reported'}</span><em>{machineData?.currentProcess === name ? '●' : '—'}</em></div>)}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
     </div>
-    <div className="columns bottom single-panel"><section className="panel"><div className="panel-head"><div><h2>Production summary</h2><p>Batch overview for selected period</p></div><select aria-label="Production period" value={period} onChange={e=>setPeriod(e.target.value)}><option>Today</option><option>This week</option><option>This month</option></select></div><div className="metrics summary-metrics">{[['Repellent produced','—'],['Pillows produced',String(pillowCount)]].map(([label, value]) => <div key={label}><small>{label}</small><b>{value}</b><em>{label === 'Pillows produced' ? 'Waiting for device data' : 'Amount recorded after device integration'}</em></div>)}</div><div className="empty"><Activity/><b>{pillowCount ? `${pillowCount} pillows produced` : 'Pillow count will appear here'}</b><small>Pillow count will update when machine data is connected to the app.</small></div></section>
+    <div className="columns bottom single-panel"><section className="panel"><div className="panel-head"><div><h2>Production summary</h2><p>Batch overview for selected period</p></div><select aria-label="Production period" value={period} onChange={e=>setPeriod(e.target.value)}><option>Today</option><option>This week</option><option>This month</option></select></div><div className="metrics summary-metrics">{[['Repellent produced',productionSummary?.repellentProduced ?? productionSummary?.repellentMl ?? '—'],['Pillows produced',productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? pillowCount]].map(([label, value]) => <div key={label}><small>{label}</small><b>{value}</b><em>{productionSummary ? 'Summary received from Firebase' : 'No production summary reported yet'}</em></div>)}</div><div className="empty"><Activity/><b>{productionHistory.length ? productionHistory.length + ' recorded history events' : 'No production history yet'}</b><small>Records received from production/history appear here.</small><button className="link" onClick={() => go('Production History')}>Open production history <ArrowUpRight size={15}/></button></div></section>
     </div>
   </>;
 }
@@ -75,11 +81,11 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
     <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div><div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle cotton laser','Cotton presence'],['bottomCottonLaser','Bottom cotton laser','Cotton presence'],['halfLiquidSensor','Half liquid sensor','Liquid level threshold'],['fullLiquidSensor','Full liquid sensor','Liquid level threshold']].map(([key,name,purpose])=>{const value=machineData?.sensors?.[key]; return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{value === undefined || value === null ? '—' : String(value)}</td><td><span className={'pill '+(value === undefined || value === null ? 'muted' : 'good')}>{value === undefined || value === null ? 'No data' : 'Live'}</span></td></tr>;})}</tbody></table></div></section>
   </>;
 }
-function ProductionHistory({period,setPeriod}) {
+function ProductionHistory({period,setPeriod,productionSummary,productionHistory}) {
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent output, completed pillows, and production events over time." />
-    <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent produced" value="—" meta="Awaiting production records" tag="EMPTY"/><Stat icon={Package} tone="blue" label="Pillows produced" value="—" meta="Awaiting production records" tag="EMPTY"/><Stat icon={CheckCircle2} tone="purple" label="Completed" value="—" meta="Awaiting production logs" tag="EMPTY"/><Stat icon={AlertTriangle} tone="orange" label="Interrupted" value="—" meta="Awaiting production logs" tag="EMPTY"/></div>
+    <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent produced" value={productionSummary?.repellentProduced ?? productionSummary?.repellentMl ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
     <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent production</h2><p>Volume produced during the selected period</p></div>{periods}</div>
       <div className="chart-legend"><span><i className="legend-repellent"/> Repellent produced <small>(mL or L after setup)</small></span></div>
       <div className="production-chart" role="img" aria-label={`Repellent production chart for ${period}; awaiting Firebase data`}>
@@ -102,13 +108,13 @@ function ProductionHistory({period,setPeriod}) {
       <div className="chart-footnote"><Radio size={14}/> Charts show recorded machine data only; no sample values are shown.</div>
     </section>
     <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each production event, recorded by the machine</p></div></div>
-      <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody><tr><td colSpan="5" className="empty-cell"><History size={23}/><b>No production events yet</b><span>When Firebase is connected, each completed or interrupted event will show its date and time here.</span></td></tr></tbody></table></div>
+      <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{productionHistory.length ? productionHistory.map(item => <tr key={item.id}><td>{item.event || item.type || 'Machine event'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No production events yet</b><span>New records will appear when written to production/history.</span></td></tr>}</tbody></table></div>
       <div className="chart-footnote"><Radio size={14}/> Event timestamps will come from recorded controller events; no dates or times are fabricated.</div>
     </section>
   </>;
 }
-function Alerts({filter,setFilter}) {
-  const notifications = [];
+function Alerts({filter,setFilter,notificationData}) {
+  const notifications = notificationData.map(item => ({...item, title:item.title || item.event || item.type || 'Machine notification', detail:item.detail || item.message || item.machineStatus || 'Notification received from Firebase', time:item.createdAt ? new Date(Number(item.createdAt)).toLocaleString() : 'Time unavailable', category:item.category || item.type || 'All notifications', tone:'green', icon:Bell}));
   const visibleNotifications = notifications.filter(item =>
     filter === 'All notifications' || item.category === filter
   );
