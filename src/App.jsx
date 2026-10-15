@@ -106,21 +106,30 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
       const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
       const buildLine = (total, fieldNames) => {
-        // Prefer cumulative count snapshots saved on each event. Older events may not have them.
-        const snapshotValues = completedEvents.map(item => {
+        // Use only events with saved cumulative snapshots when available. Older events
+        // remain in the table but cannot be plotted as exact historical count values.
+        const snapshots = completedEvents.map(item => {
           for (const field of fieldNames) {
-            const value = Number(item[field]);
-            if (item[field] !== undefined && item[field] !== null && Number.isFinite(value)) return value;
+            const raw = item[field];
+            if (raw !== undefined && raw !== null && Number.isFinite(Number(raw))) {
+              return { value: Number(raw), createdAt: Number(item.createdAt) };
+            }
           }
           return null;
-        });
-        const hasSnapshots = snapshotValues.length > 0 && snapshotValues.every(value => value !== null);
-        let values = hasSnapshots ? snapshotValues : completedEvents.map((_, i) => Math.min(i + 1, Math.max(0, total)));
-        if (!completedEvents.length && total > 0) values = [total];
-        if (values.length === 1) values.unshift(0);
-        const max = Math.max(4, Math.ceil(Math.max(total, ...values, 0) / 4) * 4);
-        const coords = values.map((v,i) => ({x: values.length === 1 ? 50 : 4 + i * (92 / (values.length - 1)), y: 100 - (v / max) * 88, value:v}));
-        return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total};
+        }).filter(Boolean);
+        let points = snapshots;
+        if (!points.length) {
+          points = completedEvents.map((item, i) => ({
+            value: Math.min(i + 1, Math.max(0, total)),
+            createdAt: Number(item.createdAt),
+            estimated: true
+          }));
+        }
+        if (!points.length && total > 0) points = [{ value: total, createdAt: Date.now(), estimated: true }];
+        if (points.length === 1) points = [{ value: 0, createdAt: points[0].createdAt, estimated: true }, points[0]];
+        const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
+        const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
+        return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total, hasSnapshots:snapshots.length > 0};
       };
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
       const pillowLine = buildLine(pillowTotal, ['pillowsProduced', 'pillowCount', 'pillowCountAfter']);
@@ -132,19 +141,19 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
             {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
             {data.coords.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="1.7" fill={color} vectorEffect="non-scaling-stroke"><title>{p.value}</title></circle>)}
           </svg> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
-          <div className="line-chart-x"><span>{completedEvents.length ? new Date(Number(completedEvents[0].createdAt)).toLocaleDateString() : 'Start'}</span><span>{completedEvents.length ? new Date(Number(completedEvents[completedEvents.length-1].createdAt)).toLocaleDateString() : 'Latest'}</span></div>
+          <div className="line-chart-x"><span>{data.coords.length ? new Date(data.coords[0].createdAt).toLocaleDateString() : 'Start'}</span><span>{data.coords.length ? new Date(data.coords[data.coords.length-1].createdAt).toLocaleDateString() : 'Latest'}</span></div>
         </div>
       </div>;
       return <>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers over time</h2><p>Container count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
           <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Historical events without count snapshots are capped at the Firebase summary total.</div>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. New points use saved count snapshots; older history cannot be reconstructed exactly.</div>
         </section>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillows produced over time</h2><p>Pillow count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
           <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Historical points are capped at the Firebase summary total until each event stores its count snapshot.</div>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Exact historical points appear as new completion events save count snapshots.</div>
         </section>
       </>;
     })()}
