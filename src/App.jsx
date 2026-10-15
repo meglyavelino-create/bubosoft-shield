@@ -176,7 +176,7 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   return <>
     <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
-    <section className="panel actuator-panel"><div className="panel-head"><div><h2>Linear actuators</h2><p>Separation Storage and Cotton Storage</p></div><span className="monitor-count"><Activity size={14}/> 2 actuators</span></div><div className="stage-grid">{actuatorCards.map((actuator, index) => <div className="stage-card" key={actuator.storage}><div className="stage-card-top"><div className="stage-card-icon"><ArrowLeftRight size={18}/></div><span className="stage-number">A{index + 1}</span></div><b>{actuator.name}</b><small>{actuator.storage}</small><p>{actuator.detail}</p><span className="stage-waiting"><i/> {actuator.status}</span></div>)}</div></section>\n    <section className="panel stage-panel">
+    \n    <section className="panel stage-panel">
       <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 7 production stages</span></div>
       <div className="stage-grid">{stages.map(([name, desc, substages], index) => {
         const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []);
