@@ -120,13 +120,15 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const points = snapshots;
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
-        const path = coords.reduce((d, p, i) => {
-          if (i === 0) return `M ${p.x} ${p.y}`;
-          const prev = coords[i - 1];
-          const midX = (prev.x + p.x) / 2;
-          const midY = (prev.y + p.y) / 2;
-          return i === 1 ? `${d} Q ${prev.x} ${prev.y} ${midX} ${midY} T ${p.x} ${p.y}` : `${d} T ${p.x} ${p.y}`;
-        }, '');
+        let path = coords.length ? `M ${coords[0].x} ${coords[0].y}` : '';
+        for (let i = 1; i < coords.length - 1; i++) {
+          const current = coords[i];
+          const next = coords[i + 1];
+          const midX = (current.x + next.x) / 2;
+          const midY = (current.y + next.y) / 2;
+          path += ` Q ${current.x} ${current.y} ${midX} ${midY}`;
+        }
+        if (coords.length > 1) path += ` L ${coords[coords.length - 1].x} ${coords[coords.length - 1].y}`;
         return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
       };
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
@@ -137,7 +139,8 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
           {[0,1,2,3,4].map(n=><div className="line-chart-gridline" key={n} style={{top:`${n*25}%`}}/>)}
           {hasData && data.coords.length > 0 ? <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
             {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
-          </svg> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
+          </svg>
+          {hasData && data.coords.length > 0 && <div className="line-chart-markers" aria-hidden="true">{data.coords.map((p,i)=><span key={i} className="line-chart-marker" style={{left:`${p.x}%`,top:`${p.y}%`,backgroundColor:color}} title={`Count: ${p.value}`}/>)}</div>} : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
           <div className="line-chart-x"><span>{data.coords.length ? new Date(data.coords[0].createdAt).toLocaleDateString() : 'Start'}</span><span>{data.coords.length ? new Date(data.coords[data.coords.length-1].createdAt).toLocaleDateString() : 'Latest'}</span></div>
         </div>
       </div>;
