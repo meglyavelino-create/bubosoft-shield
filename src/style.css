@@ -124,3 +124,13 @@
 .line-chart-x{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;gap:8px}
 .line-chart-x span{font-size:9px;color:#91a096}
 @media(max-width:700px){.line-chart-wrap{grid-template-columns:27px minmax(0,1fr);min-height:230px}.line-chart-plot{height:230px}.line-chart-y,.line-chart-x span{font-size:8px}}
+
+
+/* Compact production line charts so the history page is not overly tall */
+.line-chart-wrap{min-height:190px;grid-template-columns:30px minmax(0,1fr);margin-top:0}
+.line-chart-plot{height:185px;padding-bottom:24px}
+.line-chart-y{padding-bottom:24px;font-size:8px}
+.line-chart-svg{bottom:24px;height:calc(100% - 24px)}
+.line-chart-x span{font-size:8px}
+.production-chart-panel{padding-bottom:14px}
+@media(max-width:700px){.line-chart-wrap{min-height:165px;grid-template-columns:25px minmax(0,1fr)}.line-chart-plot{height:160px;padding-bottom:22px}.line-chart-y{padding-bottom:22px}.line-chart-svg{bottom:22px;height:calc(100% - 22px)}}
