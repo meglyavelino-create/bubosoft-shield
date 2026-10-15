@@ -98,33 +98,46 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
     <div className="stats"><Stat icon={Droplets} tone="green" label="Repellent containers processed" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="From Firebase summary when available" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
     {(() => {
-      const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
-      const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
+      const completedEvents = [...productionHistory]
+        .filter(item => /process completed/i.test(String(item.event || item.title || '')) && item.createdAt)
+        .sort((a,b) => Number(a.createdAt) - Number(b.createdAt));
       const hasContainerTotal = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
       const hasPillowTotal = productionSummary && (productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
-      const containerMax = Math.max(4, Math.ceil(containerTotal / 4) * 4);
-      const pillowMax = Math.max(4, Math.ceil(pillowTotal / 4) * 4);
+      const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
+      const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
+      const buildLine = (total) => {
+        const count = Math.max(completedEvents.length, 2);
+        const values = completedEvents.length ? completedEvents.map((_,i) => i + 1) : [];
+        if (values.length && total > values[values.length - 1]) values.push(total);
+        if (!values.length && total > 0) values.push(total);
+        if (values.length === 1) values.unshift(0);
+        const max = Math.max(4, Math.ceil(Math.max(total, ...values, 0) / 4) * 4);
+        const coords = values.map((v,i) => ({x: values.length === 1 ? 50 : 4 + i * (92 / (values.length - 1)), y: 100 - (v / max) * 88, value:v}));
+        return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total};
+      };
+      const containerLine = buildLine(containerTotal);
+      const pillowLine = buildLine(pillowTotal);
+      const LineChart = ({data,color,label,hasData}) => <div className="line-chart-wrap">
+        <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
+        <div className="line-chart-plot">
+          {[0,1,2,3,4].map(n=><div className="line-chart-gridline" key={n} style={{top:`${n*25}%`}}/>)}
+          {hasData && data.coords.length > 0 ? <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
+            {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
+            {data.coords.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="1.7" fill={color} vectorEffect="non-scaling-stroke"><title>{p.value}</title></circle>)}
+          </svg> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
+          <div className="line-chart-x"><span>{completedEvents.length ? new Date(Number(completedEvents[0].createdAt)).toLocaleDateString() : 'Start'}</span><span>{completedEvents.length ? new Date(Number(completedEvents[completedEvents.length-1].createdAt)).toLocaleDateString() : 'Latest'}</span></div>
+        </div>
+      </div>;
       return <>
-        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Total repellent containers</h2><p>Total containers processed so far</p></div></div>
+        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers over time</h2><p>Container count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
-          <div className="production-chart" role="img" aria-label={`Total repellent containers processed: ${hasContainerTotal ? containerTotal : 'no data'}`}>
-            <div className="chart-y-labels"><span>{containerMax}</span><span>{Math.round(containerMax*0.75)}</span><span>{Math.round(containerMax*0.5)}</span><span>{Math.round(containerMax*0.25)}</span></div>
-            <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
-              {hasContainerTotal ? <div className="count-chart-bars"><div className="count-chart-column"><span className="count-chart-value">{containerTotal}</span><div className="count-chart-track"><div className="count-chart-bar repellent-bar" style={{height: `${containerTotal === 0 ? 0 : Math.max(4, containerTotal/containerMax*100)}%`}}/></div><small>Total</small></div></div> : <div className="chart-empty-state"><div className="chart-empty-icon"><Droplets size={22}/></div><b>No container data yet</b><span>Container counts will appear after the ESP32 sends the container-count fields to Firebase.</span></div>}
-              <div className="chart-x-labels"><span>Total</span></div>
-            </div>
-          </div>
+          <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && completedEvents.length)}/>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Lines use recorded completion events, not invented samples.</div>
         </section>
-        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Total pillows produced</h2><p>Total completed pillows so far</p></div></div>
+        <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillows produced over time</h2><p>Pillow count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
-          <div className="production-chart" role="img" aria-label={`Total pillows produced: ${hasPillowTotal ? pillowTotal : 'no data'}`}>
-            <div className="chart-y-labels"><span>{pillowMax}</span><span>{Math.round(pillowMax*0.75)}</span><span>{Math.round(pillowMax*0.5)}</span><span>{Math.round(pillowMax*0.25)}</span></div>
-            <div className="chart-plot">{[0,1,2,3].map(n=><div className="chart-gridline" key={n}/>)}
-              {hasPillowTotal ? <div className="count-chart-bars"><div className="count-chart-column"><span className="count-chart-value">{pillowTotal}</span><div className="count-chart-track"><div className="count-chart-bar pillow-bar" style={{height: `${pillowTotal === 0 ? 0 : Math.max(4, pillowTotal/pillowMax*100)}%`}}/></div><small>Total</small></div></div> : <div className="chart-empty-state"><div className="chart-empty-icon"><Package size={22}/></div><b>No pillow data yet</b><span>Pillow counts will appear after the ESP32 sends the pillow-count fields to Firebase.</span></div>}
-              <div className="chart-x-labels"><span>Total</span></div>
-            </div>
-          </div>
-          <div className="chart-footnote"><Radio size={14}/> Graphs show total counts stored in the Firebase production summary.</div>
+          <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && completedEvents.length)}/>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. During simulation, both counts advance on command D.</div>
         </section>
       </>;
     })()}
