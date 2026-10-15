@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { onValue, ref, remove, update } from 'firebase/database';
 import { database } from './firebase';
-import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, ArrowLeftRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
 
 const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Notifications', Bell], ['Settings', Settings]];
 const stages = [
