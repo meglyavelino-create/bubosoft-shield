@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { onValue, ref, update } from 'firebase/database';
+import { onValue, ref, remove, update } from 'firebase/database';
 import { database } from './firebase';
 import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
 
@@ -39,8 +39,8 @@ export default function App() {
   const go = (name) => { setPage(name); setMenu(false); setNotice(''); };
   const inform = (message) => setNotice(message);
   const unreadCount = notificationData.filter(item => item.read !== true).length;
-  const markNotificationRead = async (item) => { try { await import('firebase/database').then(({ remove }) => remove(ref(database, `notifications/${item.id}`))); } catch (error) { inform('Could not delete notification. Check Firebase database rules.'); } };
-  const markAllNotificationsRead = async () => { try { const { remove } = await import('firebase/database'); await Promise.all(notificationData.filter(item => item.read !== true).map(item => remove(ref(database, `notifications/${item.id}`)))); inform('All unread notifications deleted.'); } catch (error) { inform('Could not delete notifications. Check Firebase database rules.'); } };
+  const markNotificationRead = async (item) => { try { await remove(ref(database, `notifications/${item.id}`)); } catch (error) { inform('Could not delete notification. Check Firebase database rules.'); } };
+  const markAllNotificationsRead = async () => { try { await Promise.all(notificationData.filter(item => item.read !== true).map(item => remove(ref(database, `notifications/${item.id}`)))); inform('All unread notifications deleted.'); } catch (error) { inform('Could not delete notifications. Check Firebase database rules.'); } };
   const refresh = () => { setRefreshCount(v => v + 1); inform('Demo data refreshed. Live readings will appear after Firebase and controller integration.'); };
   return <div className="app">
     <aside className={'sidebar ' + (menu ? 'open' : '')}>
