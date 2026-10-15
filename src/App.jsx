@@ -254,10 +254,17 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         </section>
       </>;
     })()}
-    <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each production event, recorded by the machine</p></div></div>
-      <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{productionHistory.length ? productionHistory.map(item => <tr key={item.id}><td>{item.event || item.type || 'Machine event'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No production events yet</b><span>New records will appear when written to production/history.</span></td></tr>}</tbody></table></div>
-      <div className="chart-footnote"><Radio size={14}/> Event timestamps will come from recorded controller events; no dates or times are fabricated.</div>
-    </section>
+    {(() => {
+      const relevantHistory = productionHistory.filter(item => {
+        const eventText = String(item.event || item.title || item.type || '').toLowerCase().replace(/[_-]+/g, ' ');
+        const detailText = String(item.machineStatus || item.details || item.message || '').toLowerCase().replace(/[_-]+/g, ' ');
+        return /process completed|process interrupted/.test(eventText) || /process completed|process interrupted/.test(detailText);
+      });
+      return <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each completed or interrupted production process</p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{relevantHistory.length ? relevantHistory.map(item => <tr key={item.id}><td>{item.event || item.title || item.type || 'Production event'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || item.message || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No completed or interrupted processes yet</b><span>Only process completion and interruption events will appear here.</span></td></tr>}</tbody></table></div>
+        <div className="chart-footnote"><Radio size={14}/> Only completed and interrupted process records are shown here; timestamps come from Firebase history.</div>
+      </section>;
+    })()}
   </>;
 }
 function Alerts({filter,setFilter,notificationData}) {
