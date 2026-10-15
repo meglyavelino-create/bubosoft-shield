@@ -85,7 +85,7 @@ function ProductionHistory({period,setPeriod}) {
       <div className="chart-footnote"><Radio size={14}/> Charts show recorded machine data only; no sample values are shown.</div>
     </section>
     <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each production event, recorded by the machine</p></div></div>
-      <div className="table-wrap"><table><thead><tr><th>Event</th><th>Production stage</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody><tr><td colSpan="5" className="empty-cell"><History size={23}/><b>No production events yet</b><span>When Firebase is connected, each completed or interrupted event will show its date and time here.</span></td></tr></tbody></table></div>
+      <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody><tr><td colSpan="5" className="empty-cell"><History size={23}/><b>No production events yet</b><span>When Firebase is connected, each completed or interrupted event will show its date and time here.</span></td></tr></tbody></table></div>
       <div className="chart-footnote"><Radio size={14}/> Event timestamps will come from recorded controller events; no dates or times are fabricated.</div>
     </section>
   </>;
