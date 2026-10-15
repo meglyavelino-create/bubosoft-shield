@@ -12,7 +12,7 @@ export default function App() {
   const [menu, setMenu] = useState(false);
   const [notice, setNotice] = useState('');
   const [period, setPeriod] = useState('Today');
-  const [filter, setFilter] = useState('All events');
+  const [filter, setFilter] = useState('All notifications');
   const [query, setQuery] = useState('');
   const [refreshCount, setRefreshCount] = useState(0);
   const [pillowCount, setPillowCount] = useState(0);
@@ -28,7 +28,7 @@ export default function App() {
       <div className="side-bottom"><div className="help"><ShieldCheck/><div><b>Machine workspace</b><small>Monitoring prototype</small></div></div><div className="user"><div className="avatar">BS</div><div><b>System Operator</b><small>Preview account</small></div><ChevronDown size={16}/></div></div>
     </aside>
     {menu && <button className="scrim" aria-label="Close menu" onClick={() => setMenu(false)}/>}
-    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Demo mode</span><button className="bell" aria-label="Notifications" onClick={() => go('Alerts & Logs')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
+    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Demo mode</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
         {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount}/>}
