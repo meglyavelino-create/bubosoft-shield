@@ -42,20 +42,26 @@ export default function App() {
     <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Firebase: {firebaseStatus}</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount}/>}
+        {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount} machineData={machineData} firebaseStatus={firebaseStatus}/>}
         {page === 'Live Monitoring' && <LiveMonitoring inform={inform} machineData={machineData} firebaseStatus={firebaseStatus}/>}
         {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod}/>}
         {page === 'Notifications' && <Alerts filter={filter} setFilter={setFilter}/>}
-        {page === 'Settings' && <SettingsPage inform={inform}/>}
+        {page === 'Settings' && <SettingsPage inform={inform} machineData={machineData} firebaseStatus={firebaseStatus}/>}
         <footer>© 2026 BUBOSOFT SHIELD <span><ShieldCheck size={14}/> Machine monitoring interface · Preview build 0.2.0</span></footer>
       </div></main></div>;
 }
 function PageHeading({eyebrow='SMART MACHINE MONITORING', title, subtitle, children}) { return <div className="welcome"><div><div className="eyebrow"><i/> {eyebrow}</div><h1>{title}</h1><p>{subtitle}</p></div>{children && <div className="actions">{children}</div>}</div>; }
 function SectionTitle({title, subtitle, right}) { return <div className="section-title"><div><h2>{title}</h2><p>{subtitle}</p></div>{right}</div>; }
-function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillowCount}) {
+function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillowCount, machineData, firebaseStatus}) {
+  const sensors = machineData?.sensors || {};
+  const hasCottonData = typeof sensors.middleCottonLaser === 'boolean' || typeof sensors.bottomCottonLaser === 'boolean';
+  const hasLiquidData = typeof sensors.halfLiquidSensor === 'boolean' || typeof sensors.fullLiquidSensor === 'boolean';
+  const cottonReady = sensors.middleCottonLaser === true || sensors.bottomCottonLaser === true;
+  const liquidLabel = !hasLiquidData ? 'No data' : sensors.fullLiquidSensor ? 'Full' : sensors.halfLiquidSensor ? 'At least half' : 'Low / empty';
+  const machineLabel = machineData?.status || 'Waiting for data';
   return <><PageHeading title="Good day, Operator" subtitle="Monitor your kapok processing and repellent production system." />
-    <SectionTitle title="System overview" subtitle="Key indicators from your machine" right={<span className="sample"><i/> SAMPLE DATA · NOT CONNECTED</span>}/>
-    <div className="stats"><Stat icon={Cpu} tone="green" label="Machine status" value="Standby" meta="Awaiting process start" tag="IDLE"/><Stat icon={Layers3} tone="blue" label="Current process" value="Not running" meta="No active production stage" tag="READY"/><Stat icon={Package} tone="orange" label="Cotton supply" value="Unverified" meta="Sensor data not connected" tag="NO DATA"/><Stat icon={Droplets} tone="purple" label="Liquid system" value="Standby" meta="Level sensors not connected" tag="IDLE"/></div>
+    <SectionTitle title="System overview" subtitle="Live indicators from Firebase" right={<span className="sample"><i/> {firebaseStatus === 'Connected' && machineData ? (machineData.demoMode ? 'DEMO DATA' : 'LIVE FIREBASE DATA') : firebaseStatus.toUpperCase()}</span>}/>
+    <div className="stats"><Stat icon={Cpu} tone="green" label="Machine status" value={machineLabel} meta={machineData ? (machineData.demoMode ? 'Simulated ESP32 reading' : 'Latest controller reading') : 'Waiting for machine/latest'} tag={machineData ? 'RECEIVING' : 'NO DATA'}/><Stat icon={Layers3} tone="blue" label="Current process" value={machineData?.currentProcess || 'Not reported'} meta={machineData?.processStage || 'No active stage reported'} tag={machineData?.currentProcess ? 'ACTIVE' : 'UNKNOWN'}/><Stat icon={Package} tone="orange" label="Cotton supply" value={!hasCottonData ? 'No data' : cottonReady ? 'Cotton detected' : 'Insufficient cotton'} meta={`Middle: ${sensors.middleCottonLaser === undefined ? '—' : sensors.middleCottonLaser} · Bottom: ${sensors.bottomCottonLaser === undefined ? '—' : sensors.bottomCottonLaser}`} tag={hasCottonData ? (cottonReady ? 'READY' : 'CHECK') : 'NO DATA'}/><Stat icon={Droplets} tone="purple" label="Liquid system" value={liquidLabel} meta={`Half: ${sensors.halfLiquidSensor === undefined ? '—' : sensors.halfLiquidSensor} · Full: ${sensors.fullLiquidSensor === undefined ? '—' : sensors.fullLiquidSensor}`} tag={hasLiquidData ? 'SENSOR DATA' : 'NO DATA'}/></div>
     <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>No active batch</b><small>Production stages will update when machine telemetry is connected.</small></div><span>STANDBY</span></div>{stages.map(([name, desc]) => <div className="stage" key={name}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>Waiting</span><em>—</em></div>)}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
     </div>
     <div className="columns bottom single-panel"><section className="panel"><div className="panel-head"><div><h2>Production summary</h2><p>Batch overview for selected period</p></div><select aria-label="Production period" value={period} onChange={e=>setPeriod(e.target.value)}><option>Today</option><option>This week</option><option>This month</option></select></div><div className="metrics summary-metrics">{[['Repellent produced','—'],['Pillows produced',String(pillowCount)]].map(([label, value]) => <div key={label}><small>{label}</small><b>{value}</b><em>{label === 'Pillows produced' ? 'Waiting for device data' : 'Amount recorded after device integration'}</em></div>)}</div><div className="empty"><Activity/><b>{pillowCount ? `${pillowCount} pillows produced` : 'Pillow count will appear here'}</b><small>Pillow count will update when machine data is connected to the app.</small></div></section>
@@ -64,7 +70,7 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
 }
 function LiveMonitoring({inform, machineData, firebaseStatus}) {
   return <><PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
-    <div className="notice"><Radio size={17}/><span><b>Demo mode:</b> values are not being read from physical sensors or Firebase.</span></div>
+    <div className="notice"><Radio size={17}/><span>{machineData ? (machineData.demoMode ? 'Firebase connected. These are simulated demo readings, not physical sensor measurements.' : 'Firebase connected. Displaying the latest values received from the machine.') : 'Waiting for data at machine/latest in Firebase.'}</span></div>
     <section className="panel stage-panel"><div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 5 production stages</span></div><div className="stage-grid">{stages.map(([name, desc], index)=><div className="stage-card" key={name}><div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index+1).padStart(2,"0")}</span></div><b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> Waiting for data</span></div>)}</div><div className="monitor-note"><div className="monitor-note-icon"><Radio size={17}/></div><div><b>What will appear here?</b><p>When the controller is connected, each stage will show its live state. The app monitors progress only; process controls remain on the Nextion HMI.</p></div></div></section>
     <section className="panel"><div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div><div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle cotton laser','Cotton presence'],['bottomCottonLaser','Bottom cotton laser','Cotton presence'],['halfLiquidSensor','Half liquid sensor','Liquid level threshold'],['fullLiquidSensor','Full liquid sensor','Liquid level threshold']].map(([key,name,purpose])=>{const value=machineData?.sensors?.[key]; return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{value === undefined || value === null ? '—' : String(value)}</td><td><span className={'pill '+(value === undefined || value === null ? 'muted' : 'good')}>{value === undefined || value === null ? 'No data' : 'Live'}</span></td></tr>;})}</tbody></table></div></section>
   </>;
@@ -112,7 +118,7 @@ function Alerts({filter,setFilter}) {
     </section>
   </>;
 }
-function SettingsPage({inform}) {
+function SettingsPage({inform, machineData, firebaseStatus}) {
   const [saved,setSaved] = useState(false);
   const save = () => {
     setSaved(true);
@@ -130,10 +136,10 @@ function SettingsPage({inform}) {
       <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
         <ConfigRow label="Frontend hosting" value="Vercel"/>
         <ConfigRow label="Source control" value="GitHub"/>
-        <ConfigRow label="Database" value="Firebase · not connected"/>
+        <ConfigRow label="Database" value={`Firebase · ${firebaseStatus.toLowerCase()}`}/>
         <ConfigRow label="Machine controller" value="Arduino Mega 2560"/>
-        <ConfigRow label="Network controller" value="ESP32 · not connected"/>
-        <ConfigRow label="Last data received" value="No data yet"/>
+        <ConfigRow label="Network controller" value={machineData ? 'ESP32 · data received' : 'ESP32 · waiting for data'}/>
+        <ConfigRow label="Last data received" value={machineData?.receivedAt ? new Date(Number(machineData.receivedAt)).toLocaleString() : 'No timestamp yet'}/>
         <div className="sensor-note"><ShieldCheck size={16}/> The web app is monitoring-only. Machine operation and safety interlocks remain on the Nextion HMI and controller.</div>
       </section>
 
