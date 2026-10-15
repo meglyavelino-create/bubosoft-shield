@@ -4,7 +4,29 @@ import { database } from './firebase';
 import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
 
 const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Notifications', Bell], ['Settings', Settings]];
-const stages = [['Dehusking', 'Fiber preparation'], ['Separation', 'Separate fiber and shell'], ['Liquid extraction', 'Prepare repellent extract'], ['Repellent mixing', 'Mix liquid ingredients'], ['Cotton filling', 'Pillow filling cycle']];
+const stages = [
+  ['Dehusking', 'Fiber preparation'],
+  ['Separation', 'Separate fiber and shell'],
+  ['Opening', 'Open the separated fiber'],
+  ['Closing', 'Close the fiber-processing stage'],
+  ['Liquid extraction', 'Prepare repellent extract', ['Dispensing Water', 'Cooking', 'Cooling', 'Transfer Cooked Juice']],
+  ['Repellent mixing', 'Mix liquid ingredients', ['Dispensing Repellent', 'Mixing', 'Final Liquid Transfer']],
+  ['Cotton filling', 'Pillow filling cycle'],
+];
+const normalizeStage = value => String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ').replace(/\\s+/g, ' ').trim();
+const stageMatches = (value, name) => normalizeStage(value) === normalizeStage(name);
+const getStageState = (machineData, name, index) => {
+  const process = machineData?.currentProcess;
+  const stage = machineData?.processStage;
+  const active = stageMatches(process, name) || stageMatches(stage, name);
+  const completed = Number(machineData?.completedStageIndex || 0) > index ||
+    (normalizeStage(machineData?.lastEventType) === 'process completed' && index < 6);
+  const interrupted = normalizeStage(machineData?.lastEventType) === 'process interrupted' &&
+    (stageMatches(process, name) || stageMatches(process, 'Interrupted'));
+  const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' :
+    stageMatches(process, 'Standby') || !process ? 'Waiting for stage' : 'Waiting for stage';
+  return { active, completed, interrupted, label };
+};
 const sampleEvents = [
   {time:'No records yet', title:'Production history is empty', detail:'Completed batches will appear here after Firebase is connected.', type:'info'},
 ];
@@ -112,7 +134,7 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
   return <><PageHeading title="Good day, Operator" subtitle="Monitor your kapok processing and repellent production system." />
     <SectionTitle title="System overview" subtitle="Live indicators from Firebase" />
     <div className="stats"><Stat icon={Cpu} tone="green" label="Machine Status" value={machineLabel} meta={machineData ? (machineData.demoMode ? 'Simulated ESP32 reading' : 'Latest controller reading') : 'Waiting for machine/latest'} tag={machineData ? 'RECEIVING' : 'NO DATA'}/><Stat icon={Layers3} tone="blue" label="Current Process" value={machineData?.currentProcess ? String(machineData.currentProcess).toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) : 'Not Reported'} meta={machineData?.processStage || 'No active stage reported'} tag={machineData?.currentProcess ? 'ACTIVE' : 'UNKNOWN'}/><Stat icon={Package} tone="orange" label="Cotton Storage" value={cottonLevel} meta={`Middle: ${signalLabel(sensors.middleCottonLaser)} · Bottom: ${signalLabel(sensors.bottomCottonLaser)}`} tag={hasCottonData ? 'SENSOR DATA' : 'NO DATA'}/><Stat icon={Droplets} tone="purple" label="Liquid Storage" value={liquidLabel} meta={`Half: ${signalLabel(sensors.halfLiquidSensor)} · Full: ${signalLabel(sensors.fullLiquidSensor)}`} tag={hasLiquidData ? 'SENSOR DATA' : 'NO DATA'}/></div>
-    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>{machineData?.currentProcess || 'No active batch reported'}</b><small>{machineData?.processStage || 'Detailed process-stage data has not been sent by the ESP32 yet.'}</small></div><span>{machineData ? 'CONNECTED' : 'STANDBY'}</span></div>{stages.map(([name, desc], index) => { const active = machineData?.currentProcess === name || machineData?.processStage === name; const completed = Number(machineData?.completedStageIndex || 0) > index || machineData?.lastEventType === 'process_completed'; const interrupted = machineData?.lastEventType === 'process_interrupted' && (active || machineData?.currentProcess === 'Interrupted'); const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' : machineData?.currentProcess === 'Standby' ? 'Standby' : 'Waiting for stage'; return <div className={'stage ' + (active ? 'stage-active' : completed ? 'stage-complete' : interrupted ? 'stage-interrupted' : '')} key={name}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>{label}</span><em>{active ? '●' : completed ? '✓' : interrupted ? '!' : '—'}</em></div>; })}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
+    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>{machineData?.currentProcess || 'No active batch reported'}</b><small>{machineData?.processStage || 'Detailed process-stage data has not been sent by the ESP32 yet.'}</small></div><span>{machineData ? 'CONNECTED' : 'STANDBY'}</span></div>{stages.map(([name, desc, substages], index) => { const {active, completed, interrupted, label} = getStageState(machineData, name, index); const currentSubstage = normalizeStage(machineData?.processStage); return <React.Fragment key={name}><div className={'stage ' + (active ? 'stage-active' : completed ? 'stage-complete' : interrupted ? 'stage-interrupted' : '')}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>{label}</span><em>{active ? '●' : completed ? '✓' : interrupted ? '!' : '—'}</em></div>{substages && <div className="stage-substage-list" aria-label={name + ' substages'}>{substages.map(substage => <span key={substage} className={'stage-substage ' + (currentSubstage === normalizeStage(substage) ? 'stage-substage-active' : '')}>{substage}{currentSubstage === normalizeStage(substage) ? ' · Active' : ''}</span>)}</div>}</React.Fragment>; })}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
     </div>
     <div className="columns bottom single-panel"><section className="panel"><div className="panel-head"><div><h2>Production summary</h2><p>Batch overview for selected period</p></div><select aria-label="Production period" value={period} onChange={e=>setPeriod(e.target.value)}><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select></div><div className="metrics summary-metrics">{[['Repellent containers processed',summaryHasPeriodData ? summaryContainerCount : '—'],['Pillows produced',summaryHasPeriodData ? summaryPillowCount : '—']].map(([label, value]) => <div key={label}><small>{label}</small><b>{value}</b><em>{summaryHasPeriodData ? 'Calculated from recorded production events' : 'No count snapshots for this period yet'}</em></div>)}</div><div className="empty"><Activity/><b>{productionHistory.length ? productionHistory.length + ' recorded history events' : 'No production history yet'}</b><small>Records received from production/history appear here.</small><button className="link" onClick={() => go('Production History')}>Open production history <ArrowUpRight size={15}/></button></div></section>
     </div>
@@ -124,15 +146,14 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   return <>
     <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
     <section className="panel stage-panel">
-      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 5 production stages</span></div>
-      <div className="stage-grid">{stages.map(([name, desc], index) => {
-        const active = machineData?.currentProcess === name || machineData?.processStage === name;
-        const completed = Number(machineData?.completedStageIndex || 0) > index || machineData?.lastEventType === 'process_completed';
-        const interrupted = machineData?.lastEventType === 'process_interrupted' && machineData?.currentProcess === 'Interrupted';
-        const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' : machineData?.currentProcess === 'Standby' ? 'Standby' : 'Waiting for stage';
+      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 7 production stages</span></div>
+      <div className="stage-grid">{stages.map(([name, desc, substages], index) => {
+        const {active, completed, interrupted, label} = getStageState(machineData, name, index);
+        const currentSubstage = normalizeStage(machineData?.processStage);
         return <div className={'stage-card ' + (active ? 'stage-card-active' : completed ? 'stage-card-complete' : interrupted ? 'stage-card-interrupted' : '')} key={name}>
           <div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index + 1).padStart(2, '0')}</span></div>
           <b>{name}</b><small>{desc}</small><span className="stage-waiting"><i/> {label}</span>
+          {substages && <div className="stage-card-substages">{substages.map(substage => <span key={substage} className={currentSubstage === normalizeStage(substage) ? 'substage-active' : ''}>{substage}{currentSubstage === normalizeStage(substage) ? ' · Active' : ''}</span>)}</div>}
         </div>;
       })}</div>
     </section>
