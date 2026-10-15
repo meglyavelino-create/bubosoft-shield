@@ -5,27 +5,19 @@ import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, Circle
 
 const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Notifications', Bell], ['Settings', Settings]];
 const stages = [
-  ['Dehusking', 'Fiber preparation'],
-  ['Separation', 'Separate fiber and shell'],
-  ['Opening', 'Open the separated fiber'],
-  ['Closing', 'Close the fiber-processing stage'],
+  ['Dehusking', 'Process the kapok pods'],
+  ['Closing Separation Storage', 'Close the separation storage door'],
+  ['Separation', 'Separate fiber from shell and seeds'],
+  ['Opening Cotton Storage', 'Open the cotton storage door'],
+  ['Transferring', 'Transfer the separated material'],
+  ['Closing Cotton Storage', 'Close the cotton storage door'],
+  ['Opening Separation Storage', 'Open the separation storage door'],
   ['Liquid extraction', 'Prepare repellent extract', ['Dispensing Water', 'Cooking', 'Cooling', 'Transfer Cooked Juice']],
   ['Repellent mixing', 'Mix liquid ingredients', ['Dispensing Repellent', 'Mixing', 'Final Liquid Transfer']],
   ['Cotton filling', 'Pillow filling cycle'],
 ];
 const normalizeStage = value => String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 const stageMatches = (value, name) => normalizeStage(value) === normalizeStage(name);
-const getStageLocationDescription = (name, machineData) => {
-  const stage = normalizeStage(name);
-  const process = normalizeStage(machineData?.currentProcess);
-  const reportedStage = normalizeStage(machineData?.processStage);
-  if (stage === 'opening' || stage === 'closing') {
-    if (/separation storage/.test(process) || /separation storage/.test(reportedStage)) return 'Location: Separation Storage';
-    if (/cotton storage/.test(process) || /cotton storage/.test(reportedStage)) return 'Location: Cotton Storage';
-    return 'Location: Storage mechanism (awaiting controller location data)';
-  }
-  return null;
-};
 const getStageState = (machineData, name, index, substages = []) => {
   const process = machineData?.currentProcess;
   const stage = machineData?.processStage;
@@ -165,7 +157,7 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
   return <><PageHeading title="Good day, Operator" subtitle="Monitor your kapok processing and repellent production system." />
     <SectionTitle title="System overview" subtitle="Live indicators from Firebase" />
     <div className="stats"><Stat icon={Cpu} tone="green" label="Machine Status" value={machineLabel} meta={machineData ? (machineData.demoMode ? 'Simulated ESP32 reading' : 'Latest controller reading') : 'Waiting for machine/latest'} tag={machineData ? 'RECEIVING' : 'NO DATA'}/><Stat icon={Layers3} tone="blue" label="Current Process" value={machineData?.currentProcess ? String(machineData.currentProcess).toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) : 'Not Reported'} meta={machineData?.processStage || 'No active stage reported'} tag={machineData?.currentProcess ? 'ACTIVE' : 'UNKNOWN'}/><Stat icon={Package} tone="orange" label="Cotton Storage" value={cottonLevel} meta={`Middle: ${signalLabel(sensors.middleCottonLaser)} · Bottom: ${signalLabel(sensors.bottomCottonLaser)}`} tag={hasCottonData ? 'SENSOR DATA' : 'NO DATA'}/><Stat icon={Droplets} tone="purple" label="Liquid Storage" value={liquidLabel} meta={`Half: ${signalLabel(sensors.halfLiquidSensor)} · Full: ${signalLabel(sensors.fullLiquidSensor)}`} tag={hasLiquidData ? 'SENSOR DATA' : 'NO DATA'}/></div>
-    \n    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>{machineData?.currentProcess || 'No active batch reported'}</b><small>{machineData?.processStage || 'Detailed process-stage data has not been sent by the ESP32 yet.'}</small></div><span>{machineData ? 'CONNECTED' : 'STANDBY'}</span></div>{stages.map(([name, desc, substages], index) => { const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []); const currentSubstage = normalizeStage(machineData?.processStage); return <React.Fragment key={name}><div className={'stage ' + (active ? 'stage-active' : completed ? 'stage-complete' : interrupted ? 'stage-interrupted' : '')}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small>{getStageLocationDescription(name, machineData) && <small className="stage-location-description">{getStageLocationDescription(name, machineData)}</small>}</div><span>{label}</span><em>{active ? '●' : completed ? '✓' : interrupted ? '!' : '—'}</em></div>{substages && <div className="stage-substage-list" aria-label={name + ' substages'} style={{display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px', margin:'8px 0 12px 48px'}}>{substages.map(substage => <span key={substage} className={'stage-substage ' + (currentSubstage === normalizeStage(substage) ? 'stage-substage-active' : '')} style={{display:'inline-flex', alignItems:'center', gap:'5px', padding:'6px 10px', borderRadius:'999px', border:'1px solid ' + (currentSubstage === normalizeStage(substage) ? '#27875b' : '#dce5e0'), background:currentSubstage === normalizeStage(substage) ? '#eaf7ef' : '#f7f9f8', color:currentSubstage === normalizeStage(substage) ? '#176b43' : '#5f6b65', fontSize:'12px', lineHeight:1.4, whiteSpace:'nowrap'}}>{substage}{currentSubstage === normalizeStage(substage) ? ' · Running' : ''}</span>)}</div>}</React.Fragment>; })}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
+    \n    <div className="columns single-panel"><section className="panel"><div className="panel-head"><div><h2>Production process</h2><p>Track the full production workflow</p></div><button className="link" onClick={() => go('Live Monitoring')}>View details <ArrowUpRight size={15}/></button></div><div className="process-summary"><div className="sumicon"><Activity/></div><div><b>{machineData?.currentProcess || 'No active batch reported'}</b><small>{machineData?.processStage || 'Detailed process-stage data has not been sent by the ESP32 yet.'}</small></div><span>{machineData ? 'CONNECTED' : 'STANDBY'}</span></div>{stages.map(([name, desc, substages], index) => { const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []); const currentSubstage = normalizeStage(machineData?.processStage); return <React.Fragment key={name}><div className={'stage ' + (active ? 'stage-active' : completed ? 'stage-complete' : interrupted ? 'stage-interrupted' : '')}><div className="stage-icon"><Circle size={17}/></div><div className="stage-name"><b>{name}</b><small>{desc}</small></div><span>{label}</span><em>{active ? '●' : completed ? '✓' : interrupted ? '!' : '—'}</em></div>{substages && <div className="stage-substage-list" aria-label={name + ' substages'} style={{display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px', margin:'8px 0 12px 48px'}}>{substages.map(substage => <span key={substage} className={'stage-substage ' + (currentSubstage === normalizeStage(substage) ? 'stage-substage-active' : '')} style={{display:'inline-flex', alignItems:'center', gap:'5px', padding:'6px 10px', borderRadius:'999px', border:'1px solid ' + (currentSubstage === normalizeStage(substage) ? '#27875b' : '#dce5e0'), background:currentSubstage === normalizeStage(substage) ? '#eaf7ef' : '#f7f9f8', color:currentSubstage === normalizeStage(substage) ? '#176b43' : '#5f6b65', fontSize:'12px', lineHeight:1.4, whiteSpace:'nowrap'}}>{substage}{currentSubstage === normalizeStage(substage) ? ' · Running' : ''}</span>)}</div>}</React.Fragment>; })}<div className="panel-foot"><span><Clock3 size={15}/> Stage durations not available</span><button onClick={() => go('Production History')}>View batch history ↗</button></div></section>
     </div>
     <div className="columns bottom single-panel"><section className="panel"><div className="panel-head"><div><h2>Production summary</h2><p>Batch overview for selected period</p></div><select aria-label="Production period" value={period} onChange={e=>setPeriod(e.target.value)}><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select></div><div className="metrics summary-metrics">{[['Repellent containers processed',summaryHasPeriodData ? summaryContainerCount : '—'],['Pillows produced',summaryHasPeriodData ? summaryPillowCount : '—']].map(([label, value]) => <div key={label}><small>{label}</small><b>{value}</b><em>{summaryHasPeriodData ? 'Calculated from recorded production events' : 'No count snapshots for this period yet'}</em></div>)}</div><div className="empty"><Activity/><b>{productionHistory.length ? productionHistory.length + ' recorded history events' : 'No production history yet'}</b><small>Records received from production/history appear here.</small><button className="link" onClick={() => go('Production History')}>Open production history <ArrowUpRight size={15}/></button></div></section>
     </div>
@@ -177,7 +169,7 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   return <>
     <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
     \n    <section className="panel stage-panel">
-      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 7 production stages</span></div>
+      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 10 production stages</span></div>
       <div className="stage-grid">{stages.map(([name, desc, substages], index) => {
         const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []);
         const currentSubstage = normalizeStage(machineData?.processStage);
