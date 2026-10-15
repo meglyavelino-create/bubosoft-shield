@@ -105,6 +105,10 @@ function SettingsPage({inform}) {
   const [cottonAlert,setCottonAlert] = useState(true);
   const [completedAlert,setCompletedAlert] = useState(true);
   const [interruptedAlert,setInterruptedAlert] = useState(true);
+  const [sensorAlert,setSensorAlert] = useState(true);
+  const [stageAlert,setStageAlert] = useState(true);
+  const [productionAlert,setProductionAlert] = useState(true);
+  const [connectionAlert,setConnectionAlert] = useState(true);
   const [saved,setSaved] = useState(false);
   const save = () => {
     setSaved(true);
@@ -113,11 +117,17 @@ function SettingsPage({inform}) {
   const toggleRow = (title,description,enabled,setEnabled) => <div className="setting-toggle"><div><b>{title}</b><small>{description}</small></div><button type="button" className={'toggle '+(enabled?'on':'')} onClick={()=>{setEnabled(v=>!v);setSaved(false)}} aria-pressed={enabled} aria-label={title}><i/></button></div>;
   return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="Configure notification preferences and review system connection information."/>
     <div className="settings-grid">
-      <section className="panel"><div className="panel-head"><div><h2>Notification settings</h2><p>Choose which machine events should appear in Notifications.</p></div><div className="settings-icon"><Bell size={17}/></div></div>
+      <section className="panel"><div className="panel-head"><div><h2>Notification settings</h2><p>Choose all machine updates you want to be notified about.</p></div><div className="settings-icon"><Bell size={17}/></div></div>
+        <div className="notification-group-label">PRODUCTION EVENTS</div>
         {toggleRow('Cotton is empty','Notify when the cotton sensors report insufficient cotton.',cottonAlert,setCottonAlert)}
         {toggleRow('Process completed','Notify when the controller reports a successful process completion.',completedAlert,setCompletedAlert)}
         {toggleRow('Process interrupted','Notify when the controller reports a process interruption.',interruptedAlert,setInterruptedAlert)}
-        <div className="sensor-note"><CircleAlert size={16}/> These switches currently save only in this browser session. Notifications will be generated from real machine events after Firebase integration.</div>
+        <div className="notification-group-label">MACHINE DATA & STATUS</div>
+        {toggleRow('Sensor status changes','Notify when cotton or liquid level sensor states change.',sensorAlert,setSensorAlert)}
+        {toggleRow('Production stage updates','Notify when the machine moves between production stages.',stageAlert,setStageAlert)}
+        {toggleRow('Production records','Notify when repellent output or completed pillow counts are recorded.',productionAlert,setProductionAlert)}
+        {toggleRow('Connection status','Notify when the controller or Firebase connection status changes.',connectionAlert,setConnectionAlert)}
+        <div className="sensor-note"><CircleAlert size={16}/> These preferences currently apply only within this browser session. Actual alerts for all selected events will work after Firebase and machine event integration are configured.</div>
         <button className="btn primary save-btn" onClick={save}><CheckCircle2 size={15}/> Save notification preferences</button>{saved&&<p className="save-hint">Preferences saved for this session.</p>}
       </section>
       <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
