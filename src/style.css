@@ -126,11 +126,19 @@
 @media(max-width:700px){.line-chart-wrap{grid-template-columns:27px minmax(0,1fr);min-height:230px}.line-chart-plot{height:230px}.line-chart-y,.line-chart-x span{font-size:8px}}
 
 
-/* Compact production line charts so the history page is not overly tall */
-.line-chart-wrap{min-height:190px;grid-template-columns:30px minmax(0,1fr);margin-top:0}
-.line-chart-plot{height:185px;padding-bottom:24px}
-.line-chart-y{padding-bottom:24px;font-size:8px}
-.line-chart-svg{bottom:24px;height:calc(100% - 24px)}
+/* Responsive compact production line charts */
+.line-chart-wrap{min-height:150px;grid-template-columns:30px minmax(0,1fr);margin-top:0}
+.line-chart-plot{height:145px;padding-bottom:22px}
+.line-chart-y{padding-bottom:22px;font-size:8px}
+.line-chart-svg{bottom:22px;height:calc(100% - 22px)}
 .line-chart-x span{font-size:8px}
-.production-chart-panel{padding-bottom:14px}
-@media(max-width:700px){.line-chart-wrap{min-height:165px;grid-template-columns:25px minmax(0,1fr)}.line-chart-plot{height:160px;padding-bottom:22px}.line-chart-y{padding-bottom:22px}.line-chart-svg{bottom:22px;height:calc(100% - 22px)}}
+.production-chart-panel{padding:18px 20px 12px}
+@media(max-width:700px){
+.line-chart-wrap{min-height:125px;grid-template-columns:25px minmax(0,1fr)}
+.line-chart-plot{height:120px;padding-bottom:20px}
+.line-chart-y{padding-bottom:20px}
+.line-chart-svg{bottom:20px;height:calc(100% - 20px)}
+.production-chart-panel{padding:14px 12px 10px}
+.production-chart-panel .panel-head h2{font-size:13px}
+.production-chart-panel .panel-head p{font-size:10px}
+}
