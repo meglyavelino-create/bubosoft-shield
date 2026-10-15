@@ -13,7 +13,7 @@ const stages = [
   ['Repellent mixing', 'Mix liquid ingredients', ['Dispensing Repellent', 'Mixing', 'Final Liquid Transfer']],
   ['Cotton filling', 'Pillow filling cycle'],
 ];
-const normalizeStage = value => String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ').replace(/\\s+/g, ' ').trim();
+const normalizeStage = value => String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 const stageMatches = (value, name) => normalizeStage(value) === normalizeStage(name);
 const getStageState = (machineData, name, index) => {
   const process = machineData?.currentProcess;
