@@ -105,18 +105,25 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const hasPillowTotal = productionSummary && (productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
       const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
       const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
-      const buildLine = (total) => {
-        const count = Math.max(completedEvents.length, 2);
-        const values = completedEvents.length ? completedEvents.map((_,i) => i + 1) : [];
-        if (values.length && total > values[values.length - 1]) values.push(total);
-        if (!values.length && total > 0) values.push(total);
+      const buildLine = (total, fieldNames) => {
+        // Prefer cumulative count snapshots saved on each event. Older events may not have them.
+        const snapshotValues = completedEvents.map(item => {
+          for (const field of fieldNames) {
+            const value = Number(item[field]);
+            if (item[field] !== undefined && item[field] !== null && Number.isFinite(value)) return value;
+          }
+          return null;
+        });
+        const hasSnapshots = snapshotValues.length > 0 && snapshotValues.every(value => value !== null);
+        let values = hasSnapshots ? snapshotValues : completedEvents.map((_, i) => Math.min(i + 1, Math.max(0, total)));
+        if (!completedEvents.length && total > 0) values = [total];
         if (values.length === 1) values.unshift(0);
         const max = Math.max(4, Math.ceil(Math.max(total, ...values, 0) / 4) * 4);
         const coords = values.map((v,i) => ({x: values.length === 1 ? 50 : 4 + i * (92 / (values.length - 1)), y: 100 - (v / max) * 88, value:v}));
         return {max, coords, path:coords.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' '), total};
       };
-      const containerLine = buildLine(containerTotal);
-      const pillowLine = buildLine(pillowTotal);
+      const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
+      const pillowLine = buildLine(pillowTotal, ['pillowsProduced', 'pillowCount', 'pillowCountAfter']);
       const LineChart = ({data,color,label,hasData}) => <div className="line-chart-wrap">
         <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
         <div className="line-chart-plot">
@@ -132,12 +139,12 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers over time</h2><p>Container count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
           <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Lines use recorded completion events, not invented samples.</div>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Historical events without count snapshots are capped at the Firebase summary total.</div>
         </section>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillows produced over time</h2><p>Pillow count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
           <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && completedEvents.length)}/>
-          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. During simulation, both counts advance on command D.</div>
+          <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Historical points are capped at the Firebase summary total until each event stores its count snapshot.</div>
         </section>
       </>;
     })()}
