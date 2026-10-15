@@ -112,3 +112,15 @@
 .repellent-bar{background:#2d9660}
 .pillow-bar{background:#5c93d6}
 .count-chart-column>small{font-size:9px;color:#91a096}
+
+
+/* Responsive line charts for production counts */
+.line-chart-wrap{display:grid;grid-template-columns:34px minmax(0,1fr);min-height:260px;margin-top:4px}
+.line-chart-y{display:flex;flex-direction:column;justify-content:space-between;padding:0 8px 29px 0;color:#a5b2a8;font-size:9px;text-align:right}
+.line-chart-plot{position:relative;min-width:0;height:260px;padding-bottom:29px}
+.line-chart-gridline{position:absolute;left:0;right:0;height:1px;background:#edf2ee;pointer-events:none}
+.line-chart-svg{position:absolute;inset:0 0 29px;width:100%;height:calc(100% - 29px);overflow:visible;z-index:2}
+.line-chart-svg circle{vector-effect:non-scaling-stroke}
+.line-chart-x{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;gap:8px}
+.line-chart-x span{font-size:9px;color:#91a096}
+@media(max-width:700px){.line-chart-wrap{grid-template-columns:27px minmax(0,1fr);min-height:230px}.line-chart-plot{height:230px}.line-chart-y,.line-chart-x span{font-size:8px}}
