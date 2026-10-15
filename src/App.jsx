@@ -136,12 +136,7 @@ function SettingsPage({inform}) {
         <ConfigRow label="Web app control" value="Monitoring only"/>
         <div className="sensor-note"><CircleAlert size={16}/> Do not rely on browser notification settings as a substitute for hardware safety behavior. Confirm sensor polarity and safety logic on the actual machine.</div>
       </section>
-      <section className="panel"><div className="panel-head"><div><h2>User access</h2><p>Planned account permissions</p></div><div className="settings-icon"><ShieldCheck size={17}/></div></div>
-        <ConfigRow label="Authentication" value="Not configured"/>
-        <ConfigRow label="Administrator role" value="Planned"/>
-        <ConfigRow label="Operator access" value="Monitoring and history"/>
-        <div className="sensor-note"><Radio size={16}/> User roles can be enforced after authentication and database security rules are configured.</div>
-      </section>
+
     </div>
   </>;
 }
