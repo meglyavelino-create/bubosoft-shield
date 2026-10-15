@@ -23,6 +23,7 @@ export default function App() {
   const [productionSummary, setProductionSummary] = useState(null);
   const [productionHistory, setProductionHistory] = useState([]);
   const [notificationData, setNotificationData] = useState([]);
+  const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const [firebaseStatus, setFirebaseStatus] = useState('Connecting');
   useEffect(() => {
     const unsubscribe = onValue(ref(database, 'machine/latest'), (snapshot) => {
@@ -45,7 +46,14 @@ export default function App() {
       <div className="side-bottom"><div className="help"><ShieldCheck/><div><b>Machine workspace</b><small>Monitoring prototype</small></div></div><div className="user"><div className="avatar">BS</div><div><b>System Operator</b><small>Preview account</small></div><ChevronDown size={16}/></div></div>
     </aside>
     {menu && <button className="scrim" aria-label="Close menu" onClick={() => setMenu(false)}/>}
-    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Firebase: {firebaseStatus}</span><button className="bell" aria-label="Notifications" onClick={() => go('Notifications')}><Bell size={18}/></button><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
+    <main><header><div className="crumb"><button className="hamb" onClick={() => setMenu(!menu)} aria-label="Toggle menu"><Menu/></button>Workspace <span>/</span> <b>{page}</b></div><div className="topright"><span className="demo"><i/> Firebase: {firebaseStatus}</span><div className="bell-wrap">
+            <button className="bell" aria-label="Open notifications" aria-expanded={notificationMenuOpen} onClick={() => setNotificationMenuOpen(v => !v)}><Bell size={18}/>{notificationData.length > 0 && <span className="bell-count">{notificationData.length > 99 ? '99+' : notificationData.length}</span>}</button>
+            {notificationMenuOpen && <div className="notification-popover">
+              <div className="notification-popover-head"><div><b>Notifications</b><small>{notificationData.length ? notificationData.length + ' recent event' + (notificationData.length === 1 ? '' : 's') : 'No notifications yet'}</small></div><button aria-label="Close notifications" onClick={() => setNotificationMenuOpen(false)}><X size={15}/></button></div>
+              {notificationData.length === 0 ? <div className="notification-popover-empty"><Bell size={20}/><span>No notifications yet</span></div> : <div className="notification-popover-list">{notificationData.slice(0,5).map(item => <button className="notification-popover-item" key={item.id} onClick={() => { setNotificationMenuOpen(false); go('Notifications'); }}><span className="notification-popover-icon"><Bell size={15}/></span><span className="notification-popover-copy"><b>{item.title || item.event || item.type || 'Machine notification'}</b><small>{item.detail || item.message || item.machineStatus || 'Notification received from Firebase'}</small><em>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleString() : 'Time unavailable'}</em></span></button>)}</div>}
+              <button className="notification-popover-all" onClick={() => { setNotificationMenuOpen(false); go('Notifications'); }}>View all notifications <ArrowUpRight size={14}/></button>
+            </div>}
+          </div><span className="date"><CalendarDays size={16}/> Machine overview</span></div></header>
       <div className="content">
         {notice && <div className="notice"><CircleAlert size={17}/><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss"><X size={16}/></button></div>}
         {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount} machineData={machineData} productionSummary={productionSummary} productionHistory={productionHistory} firebaseStatus={firebaseStatus}/>}
