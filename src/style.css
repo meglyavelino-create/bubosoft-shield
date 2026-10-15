@@ -142,3 +142,8 @@
 .production-chart-panel .panel-head h2{font-size:13px}
 .production-chart-panel .panel-head p{font-size:10px}
 }
+
+/* Proper circular chart markers that do not stretch with the SVG aspect ratio */
+.line-chart-markers{position:absolute;inset:0 0 20px;pointer-events:none;z-index:4}
+.line-chart-marker{position:absolute;width:7px;height:7px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px currentColor;transform:translate(-50%,-50%)}
+@media(max-width:700px){.line-chart-markers{bottom:18px}.line-chart-marker{width:6px;height:6px;border-width:1.5px}}
