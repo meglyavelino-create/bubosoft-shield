@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, Circle, CircleAlert, ClipboardList, Clock3, Cpu, Download, Droplets, Filter, Home, Layers3, Leaf, Menu, Package, Play, RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, Wifi, ArrowUpRight, Gauge, X, Radio, History, AlertTriangle, RotateCcw } from 'lucide-react';
 
-const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Alerts & Logs', Bell], ['Settings', Settings]];
+const navigation = [['Dashboard', Home], ['Live Monitoring', Activity], ['Production History', ClipboardList], ['Notifications', Bell], ['Settings', Settings]];
 const stages = [['Dehusking', 'Fiber preparation'], ['Separation', 'Separate fiber and shell'], ['Liquid extraction', 'Prepare repellent extract'], ['Repellent mixing', 'Mix liquid ingredients'], ['Cotton filling', 'Pillow filling cycle']];
 const sampleEvents = [
   {time:'No records yet', title:'Production history is empty', detail:'Completed batches will appear here after Firebase is connected.', type:'info'},
@@ -34,7 +34,7 @@ export default function App() {
         {page === 'Dashboard' && <Dashboard go={go} inform={inform} refresh={refresh} period={period} setPeriod={setPeriod} refreshCount={refreshCount} pillowCount={pillowCount}/>}
         {page === 'Live Monitoring' && <LiveMonitoring inform={inform}/>}
         {page === 'Production History' && <ProductionHistory query={query} setQuery={setQuery} period={period} setPeriod={setPeriod}/>}
-        {page === 'Alerts & Logs' && <Alerts filter={filter} setFilter={setFilter}/>}
+        {page === 'Notifications' && <Alerts filter={filter} setFilter={setFilter}/>}
         {page === 'Settings' && <SettingsPage inform={inform}/>}
         <footer>© 2026 BUBOSOFT SHIELD <span><ShieldCheck size={14}/> Machine monitoring interface · Preview build 0.2.0</span></footer>
       </div></main></div>;
@@ -91,17 +91,13 @@ function ProductionHistory({period,setPeriod}) {
   </>;
 }
 function Alerts({filter,setFilter}) {
-  const events = [
-    {icon:AlertTriangle,title:'Cotton is empty',desc:'Warning · cotton sensors report insufficient material',tone:'orange',category:'Warnings'},
-    {icon:CheckCircle2,title:'Process completed',desc:'Production cycle completed successfully',tone:'green',category:'Production'},
-    {icon:RotateCcw,title:'Process interrupted',desc:'Production cycle stopped before completion',tone:'blue',category:'Production'},
-  ];
-  const visibleEvents = events.filter(event => filter === 'All events' || event.category === filter);
-  return <><PageHeading eyebrow="EVENT CENTER" title="Alerts & Logs" subtitle="Review cotton-empty warnings and production completion or interruption records."><button className="btn light" onClick={()=>setFilter('All events')}><RotateCcw size={15}/> Reset filter</button></PageHeading>
-    <div className="notice"><Radio size={17}/><span><b>Preview mode:</b> these are the only event types planned for this page. Live records and timestamps will appear after Firebase and machine integration.</span></div>
-    <section className="panel"><div className="panel-head"><div><h2>Event log</h2><p>Cotton-empty warning and production outcomes</p></div><select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filter events"><option>All events</option><option>Warnings</option><option>Production</option></select></div>
-      <div className="event-list">{visibleEvents.map((event,i)=>{const Icon=event.icon;return <div className="event-row" key={event.title}><div className={'event-icon '+event.tone}><Icon size={17}/></div><div className="event-copy"><b>{event.title}</b><small>{event.desc}</small></div><span className="event-time">No timestamp</span><span className="pill muted">Planned</span></div>})}</div>
-      <div className="sensor-note"><CircleAlert size={16}/> No live alerts or logs are being recorded yet. When connected, the machine should record the cotton-empty warning and timestamp each completed or interrupted process.</div>
+  const notifications = [];
+  const visibleNotifications = notifications.filter(item =>
+    filter === 'All notifications' || item.category === filter
+  );
+  return <><PageHeading eyebrow="NOTIFICATION CENTER" title="Notifications" subtitle="Notifications appear here only when cotton is empty, a process completes, or a process is interrupted." />
+    <section className="panel"><div className="panel-head"><div><h2>Notifications</h2><p>Machine events that need your attention</p></div><select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filter notifications"><option>All notifications</option><option>Cotton is empty</option><option>Process completed</option><option>Process interrupted</option></select></div>
+      {visibleNotifications.length === 0 ? <div className="empty-cell notification-empty"><Bell size={24}/><b>No notifications yet</b><span>When cotton is empty, a process completes, or a process is interrupted, the notification will appear here.</span></div> : <div className="event-list">{visibleNotifications.map((item)=><div className="event-row" key={item.id}><div className={'event-icon '+item.tone}><item.icon size={17}/></div><div className="event-copy"><b>{item.title}</b><small>{item.detail}</small></div><span className="event-time">{item.time}</span></div>)}</div>}
     </section>
   </>;
 }
