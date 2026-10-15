@@ -130,7 +130,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
           {[0,1,2,3,4].map(n=><div className="line-chart-gridline" key={n} style={{top:`${n*25}%`}}/>)}
           {hasData && data.coords.length > 0 ? <svg className="line-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}: total ${data.total}`}>
             {data.coords.length > 1 && <path d={data.path} fill="none" stroke={color} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"/>}
-            {data.coords.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="1.7" fill={color} vectorEffect="non-scaling-stroke"><title>{p.value}</title></circle>)}
+            {/* Avoid stretched oval markers: keep the production trend line clean at every screen width. */}
           </svg> : <div className="chart-empty-state"><b>No {label.toLowerCase()} history yet</b><span>Complete a simulated process to record points for this line graph.</span></div>}
           <div className="line-chart-x"><span>{data.coords.length ? new Date(data.coords[0].createdAt).toLocaleDateString() : 'Start'}</span><span>{data.coords.length ? new Date(data.coords[data.coords.length-1].createdAt).toLocaleDateString() : 'Latest'}</span></div>
         </div>
