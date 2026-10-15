@@ -36,3 +36,7 @@
 
 /* Notification preference groups */
 .notification-group-label{margin-top:17px;padding:8px 0 4px;font-size:9px;font-weight:800;letter-spacing:.1em;color:#8b9b90}.notification-group-label:first-of-type{margin-top:4px}
+
+
+/* Fixed always-on notification types */
+.notification-fixed{cursor:default}.always-on{flex-shrink:0;padding:6px 8px;border-radius:6px;background:#e7f6eb;color:#247a48;font-size:8px;font-weight:800;letter-spacing:.06em;white-space:nowrap}
