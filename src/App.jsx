@@ -399,7 +399,31 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       };
       const summaryTimestamp = productionSummary?.updatedAt ?? productionSummary?.createdAt ?? productionSummary?.timestamp;
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter'], completedEvents, ['repellentContainerDelta','containerDelta'], item => 1, summaryTimestamp);
-      const pillowLine = buildLine(pillowTotal, ['lifetimePillowsProduced','pillowsProduced','pillowCount','pillowCountAfter'], allEvents, ['pillowDelta','pillowsProducedDelta','pillowCountDelta'], item => /pillow produced/i.test(String(item.event || item.title || item.type || '')) ? 1 : 0, summaryTimestamp);
+      // Plot only records that actually represent pillow output. Unrelated completed
+      // repellent processes and interrupted processes may carry a zero snapshot and
+      // must not create misleading zero markers on the pillow chart.
+      const pillowHistoryEvents = [];
+      let previousPillowSnapshot = null;
+      allEvents.forEach(item => {
+        const eventName = String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || '').replace(/[_-]+/g, ' ').toLowerCase();
+        if (/process interrupted/.test(eventName)) return;
+        const rawDelta = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta;
+        const rawSnapshot = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
+        if (rawDelta !== undefined && rawDelta !== null && Number.isFinite(Number(rawDelta))) {
+          if (Number(rawDelta) > 0) pillowHistoryEvents.push(item);
+          return;
+        }
+        if (rawSnapshot !== undefined && rawSnapshot !== null && Number.isFinite(Number(rawSnapshot))) {
+          const current = Math.max(0, Number(rawSnapshot));
+          if ((previousPillowSnapshot === null && current > 0) || (previousPillowSnapshot !== null && current > previousPillowSnapshot)) {
+            pillowHistoryEvents.push(item);
+          }
+          previousPillowSnapshot = current;
+          return;
+        }
+        if (/pillow produced/.test(eventName)) pillowHistoryEvents.push(item);
+      });
+      const pillowLine = buildLine(pillowTotal, ['lifetimePillowsProduced','pillowsProduced','pillowCount','pillowCountAfter'], pillowHistoryEvents, ['pillowDelta','pillowsProducedDelta','pillowCountDelta'], item => /pillow produced/i.test(String(item.event || item.title || item.type || '')) ? 1 : 0, summaryTimestamp);
       const LineChart = ({data,color,label,hasData}) => <div className="line-chart-wrap">
         <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
         <div className="line-chart-plot">
