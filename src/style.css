@@ -241,3 +241,41 @@
 .independent-stage-copy>span{font-size:10px;line-height:1.5;color:#8b9b91}
 .independent-stage-number{padding:7px 10px;border:1px solid #e4ebf5;border-radius:8px;background:#fff;color:#8093ad;font-size:8px;font-weight:800;letter-spacing:.08em;white-space:nowrap}
 @media(max-width:700px){.independent-process-panel{padding:16px 13px}.independent-process-panel .panel-head{align-items:flex-start;flex-direction:column}.independent-stage{align-items:flex-start;padding:12px;gap:10px}.independent-stage-icon{width:36px;height:36px}.independent-stage-number{display:none}.independent-stage-copy>b{font-size:11px}}
+
+
+/* Live Monitoring — aligned with the refreshed production workflow UI */
+.live-monitor-count{display:inline-flex;align-items:center;gap:7px;border:1px solid #dcefe2;background:#f0faf3;color:#337b4c;border-radius:999px;padding:7px 11px;font-size:10px;font-weight:800}
+.live-stage-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.live-stage-grid .stage-card{border:1px solid #e4ece5;border-radius:15px;padding:16px;background:linear-gradient(180deg,#fff,#fcfefc);box-shadow:0 3px 12px #193f2405;min-width:0}
+.live-stage-grid .stage-card-active{border-color:#a9ddb9;background:linear-gradient(160deg,#effaf2,#fff);box-shadow:0 0 0 3px #f2fbf4}
+.live-stage-grid .stage-card-complete{border-color:#d7e5f8;background:linear-gradient(160deg,#f7faff,#fff)}
+.live-stage-grid .stage-card-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid #e2ece4;border-radius:11px;background:#f4f8f5;color:#8fa397}
+.live-stage-grid .stage-card-active .stage-card-icon{border-color:#c4e8cf;background:#def5e5;color:#25804a}
+.live-stage-grid .stage-card-complete .stage-card-icon{border-color:#d7e5f8;background:#eaf2ff;color:#477bbd}
+.live-stage-grid .stage-card>b{display:block;margin:11px 0 5px;color:#2f4d38;font:800 12px Manrope,sans-serif}
+.live-stage-grid .stage-card>small{display:block;color:#87988d;font-size:10px;line-height:1.5}
+.live-stage-grid .stage-number{font-size:9px;font-weight:800;color:#92a398}
+.live-stage-grid .stage-waiting{display:inline-flex;align-items:center;gap:6px;margin-top:13px;padding:6px 9px;border:1px solid #e5ece6;border-radius:999px;background:#f8faf8;color:#87968b;font-size:9px;font-weight:700}
+.live-stage-grid .stage-waiting i{width:6px;height:6px;border-radius:50%;background:#b2beb5}
+.live-stage-grid .stage-card-active .stage-waiting{border-color:#c7ead1;background:#e7f8ec;color:#25804a}
+.live-stage-grid .stage-card-active .stage-waiting i{background:#23934b;box-shadow:0 0 0 3px #c9eed4}
+.live-stage-grid .stage-card-substages{padding-top:11px;border-top:1px solid #edf2ed}
+.live-stage-grid .stage-card-substages>span{font-size:9px!important;padding:6px 8px!important}
+.live-independent-panel{border-color:#e1e9f7;background:linear-gradient(180deg,#fff,#fcfdff)}
+.live-sensors-panel{overflow:hidden}
+.live-sensors-heading{align-items:center}
+.live-sensor-connection{border-radius:999px;padding:7px 10px}
+.live-sensor-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.live-sensor-card{min-width:0;padding:15px;border:1px solid #e4ece5;border-radius:14px;background:linear-gradient(180deg,#fff,#fcfefc)}
+.live-sensor-card.has-reading{border-color:#d7eadc}
+.live-sensor-card.no-reading{background:#fafbfa}
+.live-sensor-card-top{display:flex;align-items:center;gap:7px;margin-bottom:13px;color:#87978b;font-size:8px;font-weight:800;letter-spacing:.08em}
+.live-sensor-dot{width:7px;height:7px;border-radius:50%;background:#b4c0b7}
+.live-sensor-card.has-reading .live-sensor-dot{background:#26954d;box-shadow:0 0 0 3px #e0f5e6}
+.live-sensor-card>b{display:block;color:#304d39;font:800 11px Manrope,sans-serif;line-height:1.4}
+.live-sensor-card>small{display:block;margin-top:4px;color:#8b9b90;font-size:9px}
+.live-sensor-value{margin-top:15px;color:#3e6e4b;font:800 23px Manrope,sans-serif;letter-spacing:-.04em}
+.live-sensor-card.no-reading .live-sensor-value{color:#a5b0a8}
+.live-sensor-card-foot{margin-top:10px;padding-top:9px;border-top:1px solid #edf2ed;color:#91a095;font-size:9px;line-height:1.4}
+@media(max-width:900px){.live-stage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-sensor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.live-stage-grid{grid-template-columns:1fr}.live-sensor-grid{grid-template-columns:1fr 1fr}.live-sensor-card{padding:11px}.live-sensor-value{font-size:20px}.live-sensors-heading{align-items:flex-start;flex-direction:column}}
