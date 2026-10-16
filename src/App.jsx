@@ -65,8 +65,12 @@ const getStageState = (machineData, name, index, substages = []) => {
   // A stage is active only when the controller explicitly reports it.
   // The final fiber stage shares index 6 with the completion marker, so
   // distinguish "Opening Separation Storage" from the later waiting state.
+  // A controller can report the active transfer as the process name itself
+  // rather than the parent process (Liquid extraction / Repellent mixing).
+  // Since substage names are unique in this workflow, an explicit substage
+  // match should highlight it regardless of the parent process label.
   const active = !fiberExtractionFinished &&
-    (stageMatches(process, name) || stageMatches(stage, name) || (substageActive && belongsToMain));
+    (stageMatches(process, name) || stageMatches(stage, name) || substageActive);
   const reportedStageIndex = Number(machineData?.completedStageIndex);
   const completed = (Number.isFinite(reportedStageIndex) && reportedStageIndex > index) ||
     (index === 6 && fiberExtractionFinished);
