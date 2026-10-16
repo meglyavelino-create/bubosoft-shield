@@ -340,17 +340,23 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const hasContainerSummary = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
       const hasPillowSummary = productionSummary && (productionSummary.lifetimePillowsProduced !== undefined || productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
       const derivedContainerTotal = completedEvents.length;
-      const derivedPillowTotal = Math.max(
-        // Sum explicit pillow-output deltas across all recorded production events.
-        // This reflects repeat filling cycles even if the summary snapshot is stale.
-        allEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0),
-        // Some firmware writes cumulative count snapshots without a pillow_produced event.
-        ...allEvents.map(item => {
-          const value = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
-          return value !== undefined && value !== null && Number.isFinite(Number(value)) ? Number(value) : 0;
-        }),
-        0
-      );
+      // Use the same event-delta / cumulative-snapshot interpretation as the period report.
+      // This prevents the lifetime card from lagging behind output counted in today's report.
+      let derivedPillowTotal = 0;
+      let previousLifetimePillows = null;
+      allEvents.forEach(item => {
+        const rawDelta = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta;
+        const rawSnapshot = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
+        if (rawDelta !== undefined && rawDelta !== null && Number.isFinite(Number(rawDelta))) {
+          derivedPillowTotal += Math.max(0, Number(rawDelta));
+        } else if (rawSnapshot !== undefined && rawSnapshot !== null && Number.isFinite(Number(rawSnapshot))) {
+          const current = Math.max(0, Number(rawSnapshot));
+          if (previousLifetimePillows !== null) derivedPillowTotal += Math.max(0, current - previousLifetimePillows);
+          previousLifetimePillows = current;
+        } else if (/pillow produced/i.test(String(item.event || item.title || item.type || ''))) {
+          derivedPillowTotal += 1;
+        }
+      });
       const containerTotal = Math.max(derivedContainerTotal, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0));
       const pillowTotal = Math.max(derivedPillowTotal, Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0));
       const hasContainerTotal = Boolean(hasContainerSummary || derivedContainerTotal > 0);
