@@ -166,29 +166,74 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
 function LiveMonitoring({inform, machineData, firebaseStatus}) {
   const sensors = machineData?.sensors || {};
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
-  return <>
-    <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
-    
-    <section className="panel stage-panel">
-      <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 10 production stages</span></div>
-      <div className="stage-grid">{stages.map(([name, desc, substages], index) => {
-        const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []);
-        const currentSubstage = normalizeStage(machineData?.processStage);
-        return <div className={'stage-card ' + (active ? 'stage-card-active' : completed ? 'stage-card-complete' : interrupted ? 'stage-card-interrupted' : '')} key={name}>
-          <div className="stage-card-top"><div className="stage-card-icon"><Circle size={18}/></div><span className="stage-number">{String(index + 1).padStart(2, '0')}</span></div>
-          <b>{name}</b><small>{desc}</small>{getStageLocationDescription(name, machineData) && <small className="stage-location-description">{getStageLocationDescription(name, machineData)}</small>}<span className="stage-waiting"><i/> {label}</span>
-          {substages && <div className="stage-card-substages" style={{display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'10px'}}>{substages.map(substage => <span key={substage} className={currentSubstage === normalizeStage(substage) ? 'substage-active' : ''} style={{display:'inline-flex', alignItems:'center', padding:'5px 8px', borderRadius:'999px', border:'1px solid ' + (currentSubstage === normalizeStage(substage) ? '#27875b' : '#dce5e0'), background:currentSubstage === normalizeStage(substage) ? '#eaf7ef' : '#f7f9f8', color:currentSubstage === normalizeStage(substage) ? '#176b43' : '#5f6b65', fontSize:'11px', lineHeight:1.4, whiteSpace:'nowrap'}}>{substage}{currentSubstage === normalizeStage(substage) ? ' · Active' : ''}</span>)}</div>}
-        </div>;
-      })}</div>
-    </section>
-    <section className="panel">
-      <div className="panel-head"><div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div><span className="sample"><i/> {firebaseStatus.toUpperCase()}</span></div>
-      <div className="table-wrap"><table><thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead><tbody>{[['middleCottonLaser','Middle Cotton Laser','Cotton Level'],['bottomCottonLaser','Bottom Cotton Laser','Cotton Level'],['halfLiquidSensor','Half Liquid Sensor','Liquid Level'],['fullLiquidSensor','Full Liquid Sensor','Liquid Level']].map(([key,name,purpose]) => {
-        const value = sensors[key];
-        return <tr key={key}><td>{name}</td><td>{purpose}</td><td>{signalLabel(value)}</td><td><span className={'pill ' + (value === undefined || value === null ? 'muted' : 'good')}>{value === undefined || value === null ? 'No data' : 'Live'}</span></td></tr>;
-      })}</tbody></table></div>
-    </section>
-  </>;
+  const sensorRows = [
+    ['middleCottonLaser', 'Middle Cotton Laser', 'Cotton Level'],
+    ['bottomCottonLaser', 'Bottom Cotton Laser', 'Cotton Level'],
+    ['halfLiquidSensor', 'Half Liquid Sensor', 'Liquid Level'],
+    ['fullLiquidSensor', 'Full Liquid Sensor', 'Liquid Level']
+  ];
+  return (
+    <>
+      <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
+      <section className="panel stage-panel">
+        <div className="panel-head">
+          <div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div>
+          <span className="monitor-count"><Activity size={14}/> {stages.length} production stages</span>
+        </div>
+        <div className="stage-grid">
+          {stages.map(([name, desc, substages], index) => {
+            const state = getStageState(machineData, name, index, substages || []);
+            const currentSubstage = normalizeStage(machineData?.processStage);
+            const locationDescription = getStageLocationDescription(name, machineData);
+            return (
+              <div className={'stage-card ' + (state.active ? 'stage-card-active' : state.completed ? 'stage-card-complete' : state.interrupted ? 'stage-card-interrupted' : '')} key={name}>
+                <div className="stage-card-top">
+                  <div className="stage-card-icon"><Circle size={18}/></div>
+                  <span className="stage-number">{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <b>{name}</b>
+                <small>{desc}</small>
+                {locationDescription && <small className="stage-location-description">{locationDescription}</small>}
+                <span className="stage-waiting"><i/> {state.label}</span>
+                {Array.isArray(substages) && substages.length > 0 && (
+                  <div className="stage-card-substages" style={{display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'10px'}}>
+                    {substages.map(substage => (
+                      <span key={substage} className={currentSubstage === normalizeStage(substage) ? 'substage-active' : ''} style={{display:'inline-flex', alignItems:'center', padding:'5px 8px', borderRadius:'999px', border:'1px solid ' + (currentSubstage === normalizeStage(substage) ? '#27875b' : '#dce5e0'), background:currentSubstage === normalizeStage(substage) ? '#eaf7ef' : '#f7f9f8', color:currentSubstage === normalizeStage(substage) ? '#176b43' : '#5f6b65', fontSize:'11px', lineHeight:1.4, whiteSpace:'nowrap'}}>
+                        {substage}{currentSubstage === normalizeStage(substage) ? ' · Active' : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+      <section className="panel">
+        <div className="panel-head">
+          <div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div>
+          <span className="sample"><i/> {String(firebaseStatus || 'Connecting').toUpperCase()}</span>
+        </div>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead>
+            <tbody>
+              {sensorRows.map(([key, name, purpose]) => {
+                const value = sensors[key];
+                const hasValue = value !== undefined && value !== null;
+                return (
+                  <tr key={key}>
+                    <td>{name}</td><td>{purpose}</td><td>{signalLabel(value)}</td>
+                    <td><span className={'pill ' + (hasValue ? 'good' : 'muted')}>{hasValue ? 'Live' : 'No data'}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
 }
 function ProductionHistory({period,setPeriod,productionSummary,productionHistory,productionReportRange,setProductionReportRange}) {
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
