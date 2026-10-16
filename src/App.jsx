@@ -255,10 +255,33 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   );
 }
 function ProductionHistory({period,setPeriod,productionSummary,productionHistory,productionReportRange,setProductionReportRange}) {
+  const [resettingBaseline, setResettingBaseline] = useState(false);
+  const resetAt = Number(productionSummary?.resetAt || 0);
+  const activeHistory = activeHistory.filter(item => Number(item.createdAt || 0) > resetAt);
+  const resetProductionBaseline = async () => {
+    if (resettingBaseline) return;
+    const confirmed = window.confirm('Start a new production-count session at zero? Old history will be preserved, but totals and graphs will count only records created after this reset.');
+    if (!confirmed) return;
+    setResettingBaseline(true);
+    try {
+      const now = Date.now();
+      await update(ref(database, 'production/summary'), {
+        resetAt: now,
+        repellentContainerCount: 0,
+        repellentContainersProcessed: 0,
+        updatedAt: now
+      });
+    } catch (error) {
+      console.error('Could not reset production baseline', error);
+      window.alert('Could not reset production counts. Check Firebase Database rules and try again.');
+    } finally {
+      setResettingBaseline(false);
+    }
+  };
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
-  return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
-    <div className="stats"><Stat icon={Droplets} tone="green" label="Overall repellent containers" value={Math.max([...productionHistory].filter(item => /process completed/i.test(String(item.event || item.title || item.type || ''))).length, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0))} meta="Lifetime total from summary and completed history" tag={productionHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Overall pillows produced" value={Math.max((() => { const events = [...productionHistory].filter(item => item.createdAt).sort((a,b) => Number(a.createdAt)-Number(b.createdAt)); let total = 0, previous = null; events.forEach(item => { const deltaRaw = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta; const snapshotRaw = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter; if (deltaRaw != null && Number.isFinite(Number(deltaRaw))) total += Math.max(0, Number(deltaRaw)); else if (snapshotRaw != null && Number.isFinite(Number(snapshotRaw))) { const current = Math.max(0, Number(snapshotRaw)); if (previous !== null) total += Math.max(0, current-previous); previous = current; } else if (/pillow produced/i.test(String(item.event || item.title || item.type || ''))) total += 1; }); return total; })(), ...productionHistory.map(item => { const count = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter; return count !== undefined && count !== null && Number.isFinite(Number(count)) ? Number(count) : 0; }), Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0), 0)} meta="Lifetime total from summary and pillow history" tag={productionHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="Completed processes" value={productionHistory.filter(item => /process completed/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))).length} meta="Successful process completion events" tag={productionHistory.some(item => /process completed/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))) ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Interrupted processes" value={productionHistory.filter(item => /process interrupted/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))).length} meta="Processes stopped before completion" tag={productionHistory.some(item => /process interrupted/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))) ? 'RECORDED' : 'EMPTY'}/></div>
+  return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time."><button className="secondary-button" type="button" disabled={resettingBaseline} onClick={resetProductionBaseline}><RotateCcw size={15}/>{resettingBaseline ? 'Resetting…' : 'Start counts from 0'}</button></PageHeading>
+    <div className="stats"><Stat icon={Droplets} tone="green" label="Overall repellent containers" value={Math.max([...activeHistory].filter(item => /process completed/i.test(String(item.event || item.title || item.type || ''))).length, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0))} meta="Lifetime total from summary and completed history" tag={activeHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Overall pillows produced" value={Math.max((() => { const events = [...activeHistory].filter(item => item.createdAt).sort((a,b) => Number(a.createdAt)-Number(b.createdAt)); let total = 0, previous = null; events.forEach(item => { const deltaRaw = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta; const snapshotRaw = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter; if (deltaRaw != null && Number.isFinite(Number(deltaRaw))) total += Math.max(0, Number(deltaRaw)); else if (snapshotRaw != null && Number.isFinite(Number(snapshotRaw))) { const current = Math.max(0, Number(snapshotRaw)); if (previous !== null) total += Math.max(0, current-previous); previous = current; } else if (/pillow produced/i.test(String(item.event || item.title || item.type || ''))) total += 1; }); return total; })(), ...activeHistory.map(item => { const count = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter; return count !== undefined && count !== null && Number.isFinite(Number(count)) ? Number(count) : 0; }), Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0), 0)} meta="Lifetime total from summary and pillow history" tag={activeHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="Completed processes" value={activeHistory.filter(item => /process completed/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))).length} meta="Successful process completion events" tag={activeHistory.some(item => /process completed/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))) ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Interrupted processes" value={activeHistory.filter(item => /process interrupted/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))).length} meta="Processes stopped before completion" tag={activeHistory.some(item => /process interrupted/i.test(String(item.event || item.title || item.type || item.machineStatus || item.details || item.message || ''))) ? 'RECORDED' : 'EMPTY'}/></div>
     {(() => {
       const now = new Date();
       const start = new Date(now);
@@ -276,7 +299,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         start.setHours(0, 0, 0, 0);
       }
       const end = new Date(now);
-      const all = [...productionHistory].filter(item => item.createdAt).sort((a,b) => Number(a.createdAt)-Number(b.createdAt));
+      const all = [...activeHistory].filter(item => item.createdAt).sort((a,b) => Number(a.createdAt)-Number(b.createdAt));
       let previousContainers = null;
       let previousPillows = null;
       let containers = 0;
@@ -332,7 +355,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       </section>;
     })()}
     {(() => {
-      const allEvents = [...productionHistory]
+      const allEvents = [...activeHistory]
         .filter(item => item.createdAt)
         .sort((a,b) => Number(a.createdAt) - Number(b.createdAt));
       const completedEvents = allEvents.filter(item => /process completed/i.test(String(item.event || item.title || item.type || '').replace(/[_-]+/g, ' ')));
@@ -423,7 +446,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       </>;
     })()}
     {(() => {
-      const relevantHistory = productionHistory.filter(item => {
+      const relevantHistory = activeHistory.filter(item => {
         const eventText = String(item.event || item.title || item.type || '').toLowerCase().replace(/[_-]+/g, ' ');
         const detailText = String(item.machineStatus || item.details || item.message || '').toLowerCase().replace(/[_-]+/g, ' ');
         return /process completed|process interrupted|pillow produced|repellent container/.test(eventText) || /process completed|process interrupted|pillow produced|repellent container/.test(detailText);
