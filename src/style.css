@@ -360,3 +360,50 @@
 .notification-pagination button:disabled{opacity:.4;cursor:not-allowed}
 .notification-pagination>div>span{white-space:nowrap}
 @media(max-width:760px){.notification-toolbar{align-items:stretch;flex-direction:column}.notification-search{width:100%;box-sizing:border-box}.notification-pagination{align-items:flex-start;flex-direction:column}.notification-pagination>div{width:100%;justify-content:space-between}.notification-event-list .event-row{flex-wrap:wrap}.notification-event-list .event-copy{flex-basis:calc(100% - 55px)}.notification-event-list .mark-read-button{margin-left:45px}.notification-event-list .event-time{display:block;margin-left:45px}}
+
+
+/* Settings page refresh — green industrial monitoring theme */
+.settings-hero{display:flex;align-items:center;gap:18px;padding:23px 25px;margin:0 0 18px;border:1px solid #dcefe2;border-radius:16px;background:radial-gradient(ellipse at 90% 0%,#e4f7e9 0%,transparent 45%),linear-gradient(115deg,#f0faf3 0%,#fff 75%);box-shadow:0 5px 18px #193b2905}
+.settings-hero-mark{width:54px;height:54px;display:grid;place-items:center;flex-shrink:0;border:1px solid #cfe9d6;border-radius:16px;background:#ddf4e3;color:#27804a}
+.settings-hero-copy{flex:1;min-width:0}
+.settings-hero-copy>span{font-size:8px;font-weight:800;letter-spacing:.14em;color:#43865a}
+.settings-hero-copy h2{margin:6px 0 5px;font:800 17px Manrope,sans-serif;letter-spacing:-.025em;color:#214a30}
+.settings-hero-copy p{margin:0;max-width:590px;color:#7e9383;font-size:10px;line-height:1.6}
+.settings-hero-status{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:9px 12px;border:1px solid #e3eae4;border-radius:999px;background:#fff;color:#7b8b7e;font-size:9px;font-weight:800;white-space:nowrap}
+.settings-hero-status i{width:7px;height:7px;border-radius:50%;background:#aab8ad}
+.settings-hero-status.connected{border-color:#cbe9d3;background:#e8f8ed;color:#287b48}
+.settings-hero-status.connected i{background:#26964e;box-shadow:0 0 0 3px #ccefd6}
+.settings-hero-status.disconnected{border-color:#f0e1bf;background:#fff9eb;color:#9a7a3e}
+.settings-hero-status.disconnected i{background:#d4a64d}
+.settings-grid{align-items:stretch;gap:18px}
+.settings-card{padding:22px;border-color:#e1ece3;border-radius:15px;box-shadow:0 5px 20px #193b2905}
+.settings-section-heading{display:flex;align-items:center;gap:12px;padding-bottom:17px;margin-bottom:16px;border-bottom:1px solid #edf3ee}
+.settings-section-icon{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;border:1px solid #dcefe2;border-radius:12px;background:#eaf7ed;color:#2f8650}
+.settings-section-heading>div:nth-child(2){flex:1;min-width:0}
+.settings-section-heading h2{margin:0 0 4px!important;font:800 13px Manrope,sans-serif!important;color:#2b4935!important}
+.settings-section-heading p{margin:0;font-size:10px;color:#8b9b90}
+.settings-section-index{align-self:flex-start;padding:5px 7px;border:1px solid #e5eee7;border-radius:7px;background:#f8fbf8;color:#91a196;font-size:8px;font-weight:800;letter-spacing:.08em}
+.settings-card .about-brand{padding:16px;border-color:#e1eee4;background:linear-gradient(120deg,#f1faf3,#fff)}
+.settings-card .about-logo{background:#dff4e5;color:#27804a}
+.settings-card .about-description{font-size:11px;line-height:1.8;color:#708578;margin:17px 1px}
+.settings-card .about-features{padding:15px;border:1px solid #e9f1eb;background:#f8fbf8;gap:12px}
+.settings-card .about-features span{font-size:10px;color:#536f5b}
+.settings-card .about-meta{margin-top:14px;padding:0 3px}
+.settings-card .config-row{gap:15px;padding:13px 0}
+.settings-card .config-row span{font-size:10px;color:#819287}
+.settings-card .config-row b{font-size:10px;color:#385643}
+.settings-card .sensor-note{margin-top:15px;border:1px solid #e5f0e7;background:#f4faf5;color:#65836d;padding:12px;line-height:1.6}
+.connection-status-banner{display:flex;align-items:center;gap:11px;padding:14px;margin:0 0 7px;border:1px solid #e3eee5;border-radius:12px;background:#f8fcf8}
+.connection-status-mark{display:grid;place-items:center;width:31px;height:31px;flex-shrink:0;border:1px solid #e1e9e2;border-radius:10px;background:#fff}
+.connection-status-mark i{width:8px;height:8px;border-radius:50%;background:#c0cbc2}
+.connection-status-mark.online{border-color:#d5eddb;background:#e7f7eb}
+.connection-status-mark.online i{background:#28964e;box-shadow:0 0 0 4px #d0f0d8}
+.connection-status-banner>div{display:grid;gap:4px;flex:1;min-width:0}
+.connection-status-banner>div b{font-size:10px;color:#345541}
+.connection-status-banner>div small{font-size:9px;line-height:1.5;color:#8b9b90}
+.connection-status-label{padding:6px 8px;border:1px solid #e4ebe5;border-radius:7px;background:#fff;color:#87958a;font-size:8px;font-weight:800;white-space:nowrap}
+.connection-status-label.online{border-color:#d0ead7;background:#eaf8ee;color:#2e824b}
+.connection-card .config-row{min-height:45px}
+.connection-card .config-row:last-of-type{border-bottom:0}
+.connection-card .sensor-note{margin-top:18px}
+@media(max-width:760px){.settings-hero{align-items:flex-start;flex-wrap:wrap;padding:18px}.settings-hero-mark{width:44px;height:44px}.settings-hero-copy{flex-basis:calc(100% - 65px)}.settings-hero-copy h2{font-size:15px}.settings-hero-status{margin-left:56px}.settings-card{padding:16px}.settings-section-heading{gap:9px}.settings-section-icon{width:36px;height:36px}.connection-status-banner{align-items:flex-start;flex-wrap:wrap}.connection-status-label{margin-left:42px}}
