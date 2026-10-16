@@ -279,3 +279,13 @@
 .live-sensor-card-foot{margin-top:10px;padding-top:9px;border-top:1px solid #edf2ed;color:#91a095;font-size:9px;line-height:1.4}
 @media(max-width:900px){.live-stage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-sensor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.live-stage-grid{grid-template-columns:1fr}.live-sensor-grid{grid-template-columns:1fr 1fr}.live-sensor-card{padding:11px}.live-sensor-value{font-size:20px}.live-sensors-heading{align-items:flex-start;flex-direction:column}}
+
+
+/* Live Monitoring workflow progress, consistent with Dashboard */
+.live-workflow-progress{padding:0 2px 18px;margin-bottom:14px;border-bottom:1px solid #edf3ee}
+.live-workflow-progress-copy{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.live-workflow-progress-copy>span{font-size:10px;font-weight:700;color:#5c7563}
+.live-workflow-progress-copy>b{font:800 11px Manrope,sans-serif;color:#277b48}
+.live-workflow-progress-copy b small{font:500 10px 'DM Sans',sans-serif;color:#91a196}
+.live-workflow-progress-track{height:6px;background:#edf3ee;border-radius:999px;overflow:hidden}
+.live-workflow-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,#25834b,#67c582);border-radius:999px;transition:width .25s ease}
