@@ -216,3 +216,28 @@
 .workflow-footer button{display:inline-flex;align-items:center;gap:5px}
 @media(max-width:700px){.workflow-panel{padding:16px 13px}.workflow-heading h2{font-size:15px!important}.workflow-overview{align-items:flex-start;padding:13px;gap:10px}.workflow-overview-icon{width:38px;height:38px;border-radius:11px}.workflow-current>b{font-size:13px}.workflow-current>small{font-size:10px}.workflow-connection{font-size:7px;padding:6px 7px}.workflow-stage{min-height:66px;gap:9px;padding:9px 3px}.workflow-stage-icon{width:32px;height:32px;border-radius:10px}.workflow-stage .stage-name b{font-size:10px}.workflow-stage .stage-name small{font-size:9px}.workflow-stage-status{min-width:0;padding:6px 8px;font-size:8px!important}.workflow-stage em{width:9px}.workflow-substages{padding:10px 5px 12px 41px;gap:6px}.workflow-substages .stage-substage{font-size:9px;padding:7px 9px}.workflow-progress-copy>span{font-size:9px}.workflow-progress-copy b small{font-size:9px}}
 @media(max-width:390px){.workflow-connection{display:none}.workflow-stage{gap:7px}.workflow-stage-status{padding:5px 6px}.workflow-stage em{display:none}.workflow-substages{padding-left:8px}}
+
+/* Independent pillow filling workflow — excluded from fiber/liquid progress */
+.independent-process-wrap{margin-top:4px}
+.independent-process-panel{padding:22px 26px;border-color:#e1e9f7;background:linear-gradient(180deg,#fff 0%,#fcfdff 100%)}
+.independent-process-panel .panel-head{margin-bottom:15px}
+.independent-kicker{color:#557bb8}
+.independent-kicker:before{background:#6494dc;box-shadow:0 0 0 4px #edf4ff}
+.independent-status{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #e6ecf5;border-radius:999px;background:#f7f9fc;color:#8391a4;font-size:9px;font-weight:800;white-space:nowrap}
+.independent-status i{width:6px;height:6px;border-radius:50%;background:#a9b5c5}
+.independent-status.is-running{border-color:#c7ead1;background:#e8f8ed;color:#25804a}
+.independent-status.is-running i{background:#25994d;box-shadow:0 0 0 3px #c9eed4}
+.independent-status.is-complete{border-color:#dbe7f8;background:#f0f5ff;color:#4679b9}
+.independent-status.is-complete i{background:#4679b9}
+.independent-stage{display:flex;align-items:center;gap:14px;padding:17px;border:1px solid #e8eef6;border-radius:13px;background:#fafcff}
+.independent-stage.stage-active{border-color:#c7ead1;background:linear-gradient(100deg,#f0faf3,#fff)}
+.independent-stage.stage-complete{border-color:#dbe7f8;background:#f8faff}
+.independent-stage-icon{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border-radius:13px;background:#edf3fc;color:#6084bc}
+.independent-stage.stage-active .independent-stage-icon{background:#ddf5e4;color:#25804a}
+.independent-stage.stage-complete .independent-stage-icon{background:#e7efff;color:#4679b9}
+.independent-stage-copy{display:grid;gap:5px;flex:1;min-width:0}
+.independent-stage-copy>b{font:800 13px Manrope,sans-serif;color:#304c3b}
+.independent-stage-copy>small{font-size:10px;color:#87988d}
+.independent-stage-copy>span{font-size:10px;line-height:1.5;color:#8b9b91}
+.independent-stage-number{padding:7px 10px;border:1px solid #e4ebf5;border-radius:8px;background:#fff;color:#8093ad;font-size:8px;font-weight:800;letter-spacing:.08em;white-space:nowrap}
+@media(max-width:700px){.independent-process-panel{padding:16px 13px}.independent-process-panel .panel-head{align-items:flex-start;flex-direction:column}.independent-stage{align-items:flex-start;padding:12px;gap:10px}.independent-stage-icon{width:36px;height:36px}.independent-stage-number{display:none}.independent-stage-copy>b{font-size:11px}}
