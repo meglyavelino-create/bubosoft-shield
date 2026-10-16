@@ -525,8 +525,8 @@ function SettingsPage({inform, machineData, firebaseStatus}) {
         <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
         <p className="about-description">A machine monitoring interface for a kapok fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
         <div className="about-features"><span><CheckCircle2 size={14}/> Production stage monitoring</span><span><CheckCircle2 size={14}/> Cotton and liquid sensor status</span><span><CheckCircle2 size={14}/> Production history and notifications</span></div>
-        <div className="about-meta"><ConfigRow label="Interface version" value="Preview build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Data integration" value="Firebase setup pending"/></div>
-        <div className="sensor-note"><Radio size={16}/> Readings and event history will become available after the machine controller and Firebase are connected.</div>
+        <div className="about-meta"><ConfigRow label="Interface version" value="Build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Firebase connection" value={firebaseStatus === 'Connected' ? (machineData ? 'Connected · live machine data received' : 'Connected · waiting for machine data') : firebaseStatus}/></div>
+        <div className="sensor-note"><Radio size={16}/> Live machine readings and event history are shown here when records are available in Firebase.</div>
       </section>
       <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
         <ConfigRow label="Frontend hosting" value="Vercel"/>
@@ -535,7 +535,7 @@ function SettingsPage({inform, machineData, firebaseStatus}) {
         <ConfigRow label="Machine controller" value="Arduino Mega 2560"/>
         <ConfigRow label="Network controller" value={machineData ? 'ESP32 · data received' : 'ESP32 · waiting for data'}/>
         <ConfigRow label="Last data received" value={machineData?.receivedAt ? new Date(Number(machineData.receivedAt)).toLocaleString() : 'No timestamp yet'}/>
-        <div className="sensor-note"><ShieldCheck size={16}/> The web app is monitoring-only. Machine operation and safety interlocks remain on the Nextion HMI and controller.</div>
+        <div className="sensor-note"><ShieldCheck size={16}/> This dashboard displays machine data only. Start/stop controls and safety interlocks must remain on the Nextion HMI and machine controller.</div>
       </section>
 
 
