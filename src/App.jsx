@@ -18,6 +18,23 @@ const stages = [
 ];
 const normalizeStage = value => String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 const stageMatches = (value, name) => normalizeStage(value) === normalizeStage(name);
+const getStageLocationDescription = (name, machineData) => {
+  const stage = normalizeStage(name);
+  const process = normalizeStage(machineData?.currentProcess);
+  const reportedStage = normalizeStage(machineData?.processStage);
+  if (stage === 'opening separation storage' || stage === 'closing separation storage') {
+    return 'Storage: Separation Storage';
+  }
+  if (stage === 'opening cotton storage' || stage === 'closing cotton storage') {
+    return 'Storage: Cotton Storage';
+  }
+  if (stage === 'opening' || stage === 'closing') {
+    if (process.includes('separation storage') || reportedStage.includes('separation storage')) return 'Storage: Separation Storage';
+    if (process.includes('cotton storage') || reportedStage.includes('cotton storage')) return 'Storage: Cotton Storage';
+    return 'Storage location: waiting for controller data';
+  }
+  return null;
+};
 const getStageState = (machineData, name, index, substages = []) => {
   const process = machineData?.currentProcess;
   const stage = machineData?.processStage;
