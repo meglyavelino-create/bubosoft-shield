@@ -338,3 +338,25 @@
 .history-pagination button:disabled{opacity:.4;cursor:not-allowed}
 .history-pagination>div>span{white-space:nowrap}
 @media(max-width:650px){.history-toolbar{align-items:stretch;flex-direction:column}.history-toolbar select{max-width:none;width:100%}.history-pagination{align-items:flex-start;flex-direction:column}.history-pagination>div{width:100%;justify-content:space-between}.history-table-wrap table{min-width:650px}}
+
+
+/* Compact notification center with search and pagination */
+.notification-panel{overflow:hidden}
+.notification-heading{align-items:flex-start}
+.notification-toolbar{display:flex;align-items:center;gap:12px;margin:2px 0 10px}
+.notification-search{display:flex;align-items:center;gap:9px;flex:1;min-width:180px;height:40px;padding:0 12px;border:1px solid #e0e9e2;border-radius:11px;background:#fbfdfb;color:#829487}
+.notification-search:focus-within{border-color:#8bc99d;box-shadow:0 0 0 3px #eaf7ed}
+.notification-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#304d39;font:500 12px 'DM Sans',sans-serif}
+.notification-search input::placeholder{color:#a0ada3}
+.notification-result-count{flex-shrink:0;color:#7f9184;font-size:10px;font-weight:700}
+.notification-event-list .event-row{padding:14px 8px}
+.notification-event-list .event-row.event-unread{border-radius:10px}
+.notification-event-list .event-copy>b{font-size:11px}
+.notification-event-list .event-copy>small{font-size:10px;line-height:1.45}
+.notification-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 2px 2px;border-top:1px solid #edf2ee;color:#829286;font-size:10px}
+.notification-pagination>div{display:flex;align-items:center;gap:10px}
+.notification-pagination button{padding:8px 11px;border:1px solid #dfe9e1;border-radius:9px;background:#fff;color:#4e7058;font:700 10px 'DM Sans',sans-serif;cursor:pointer}
+.notification-pagination button:hover:not(:disabled){border-color:#9bcfa8;background:#f3fbf5}
+.notification-pagination button:disabled{opacity:.4;cursor:not-allowed}
+.notification-pagination>div>span{white-space:nowrap}
+@media(max-width:760px){.notification-toolbar{align-items:stretch;flex-direction:column}.notification-search{width:100%;box-sizing:border-box}.notification-pagination{align-items:flex-start;flex-direction:column}.notification-pagination>div{width:100%;justify-content:space-between}.notification-event-list .event-row{flex-wrap:wrap}.notification-event-list .event-copy{flex-basis:calc(100% - 55px)}.notification-event-list .mark-read-button{margin-left:45px}.notification-event-list .event-time{display:block;margin-left:45px}}
