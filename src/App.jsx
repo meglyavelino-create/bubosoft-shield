@@ -594,16 +594,22 @@ function SettingsPage({inform, machineData, firebaseStatus}) {
     setSaved(true);
     inform('Notification preferences saved for this browser session only. Firebase persistence is not configured yet.');
   };
-  return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="Configure notification preferences and review system connection information."/>
+  return <><PageHeading eyebrow="CONFIGURATION" title="Settings" subtitle="System information, connectivity, and operating mode at a glance."/>
+    <section className="settings-hero">
+      <div className="settings-hero-mark"><SlidersHorizontal size={23}/></div>
+      <div className="settings-hero-copy"><span> BUBOSOFT SHIELD · SYSTEM CONFIGURATION</span><h2>Everything connected, at a glance.</h2><p>Review the monitoring system status and confirm the machine remains controlled from the Nextion HMI.</p></div>
+      <div className={'settings-hero-status ' + (firebaseStatus === 'Connected' ? 'connected' : 'disconnected')}><i/>{firebaseStatus === 'Connected' ? 'Firebase connected' : String(firebaseStatus || 'Connecting')}</div>
+    </section>
     <div className="settings-grid">
-      <section className="panel about-panel"><div className="panel-head"><div><h2>About</h2><p>Project information</p></div><div className="settings-icon"><Leaf size={18}/></div></div>
+      <section className="panel about-panel settings-card"><div className="settings-section-heading"><div className="settings-section-icon"><Leaf size={18}/></div><div><h2>About the system</h2><p>Project identity and monitoring features</p></div><span className="settings-section-index">01</span></div>
         <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
         <p className="about-description">A machine monitoring interface for a Buboi fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
         <div className="about-features"><span><CheckCircle2 size={14}/> Production stage monitoring</span><span><CheckCircle2 size={14}/> Cotton and liquid sensor status</span><span><CheckCircle2 size={14}/> Production history and notifications</span></div>
         <div className="about-meta"><ConfigRow label="Interface version" value="Build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Firebase connection" value={firebaseStatus === 'Connected' ? (machineData ? 'Connected · live machine data received' : 'Connected · waiting for machine data') : firebaseStatus}/></div>
         <div className="sensor-note"><Radio size={16}/> Live machine readings and event history are shown here when records are available in Firebase.</div>
       </section>
-      <section className="panel"><div className="panel-head"><div><h2>System connection</h2><p>Connection details for the monitoring app</p></div><div className="settings-icon"><SlidersHorizontal size={17}/></div></div>
+      <section className="panel settings-card connection-card"><div className="settings-section-heading"><div className="settings-section-icon"><Radio size={18}/></div><div><h2>System connection</h2><p>Live connectivity and controller information</p></div><span className="settings-section-index">02</span></div>
+        <div className="connection-status-banner"><span className={'connection-status-mark ' + (firebaseStatus === 'Connected' ? 'online' : '')}><i/></span><div><b>{firebaseStatus === 'Connected' ? (machineData ? 'Machine telemetry available' : 'Database connected') : 'Checking connection'}</b><small>{machineData ? 'Latest controller data is available to the dashboard.' : 'Waiting for the next machine data update.'}</small></div><span className={'connection-status-label ' + (firebaseStatus === 'Connected' ? 'online' : '')}>{String(firebaseStatus || 'Connecting')}</span></div>
         <ConfigRow label="Frontend hosting" value="Vercel"/>
         <ConfigRow label="Source control" value="GitHub"/>
         <ConfigRow label="Database" value={`Firebase · ${firebaseStatus.toLowerCase()}`}/>
