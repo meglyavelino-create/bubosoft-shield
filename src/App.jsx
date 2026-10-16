@@ -523,7 +523,7 @@ function SettingsPage({inform, machineData, firebaseStatus}) {
     <div className="settings-grid">
       <section className="panel about-panel"><div className="panel-head"><div><h2>About</h2><p>Project information</p></div><div className="settings-icon"><Leaf size={18}/></div></div>
         <div className="about-brand"><div className="about-logo"><Leaf size={24}/></div><div><b>BUBOSOFT SHIELD</b><span>Smart Kapok Fiber Processing &amp; Pillow Filling System</span></div></div>
-        <p className="about-description">A machine monitoring interface for a kapok fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
+        <p className="about-description">A machine monitoring interface for a Buboi fiber processing workflow, repellent liquid preparation, and pillow filling production.</p>
         <div className="about-features"><span><CheckCircle2 size={14}/> Production stage monitoring</span><span><CheckCircle2 size={14}/> Cotton and liquid sensor status</span><span><CheckCircle2 size={14}/> Production history and notifications</span></div>
         <div className="about-meta"><ConfigRow label="Interface version" value="Build 0.2.0"/><ConfigRow label="Operating mode" value="Monitoring only"/><ConfigRow label="Firebase connection" value={firebaseStatus === 'Connected' ? (machineData ? 'Connected · live machine data received' : 'Connected · waiting for machine data') : firebaseStatus}/></div>
         <div className="sensor-note"><Radio size={16}/> Live machine readings and event history are shown here when records are available in Firebase.</div>
