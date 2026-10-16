@@ -391,12 +391,12 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       return <>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Repellent containers over time</h2><p>Container count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-repellent"/> Containers processed <small>(count)</small></span></div>
-          <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && containerLine.hasSnapshots)}/>
+          <LineChart data={containerLine} color="#2d9660" label="Repellent containers" hasData={Boolean(hasContainerTotal && containerLine.coords.length > 0)}/>
           <div className="chart-footnote"><Radio size={14}/> Current total: {hasContainerTotal ? containerTotal : '—'} containers. Only events with saved cumulative count snapshots are plotted; older history remains in the table.</div>
         </section>
         <section className="panel production-chart-panel"><div className="panel-head"><div><h2>Pillows produced over time</h2><p>Pillow count by completed-process history</p></div></div>
           <div className="chart-legend"><span><i className="legend-pillows"/> Pillows produced <small>(count)</small></span></div>
-          <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && pillowLine.hasSnapshots)}/>
+          <LineChart data={pillowLine} color="#5c93d6" label="Pillows" hasData={Boolean(hasPillowTotal && pillowLine.coords.length > 0)}/>
           <div className="chart-footnote"><Radio size={14}/> Current total: {hasPillowTotal ? pillowTotal : '—'} pillows. Only recorded cumulative count snapshots are plotted; older history remains in the table.</div>
         </section>
       </>;
