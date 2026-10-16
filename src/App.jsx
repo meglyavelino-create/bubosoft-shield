@@ -340,7 +340,14 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const hasContainerSummary = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
       const hasPillowSummary = productionSummary && (productionSummary.lifetimePillowsProduced !== undefined || productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
       const derivedContainerTotal = completedEvents.length;
-      const derivedPillowTotal = pillowEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0);
+      const derivedPillowTotal = Math.max(
+        pillowEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0),
+        ...allEvents.map(item => {
+          const value = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
+          return value !== undefined && value !== null && Number.isFinite(Number(value)) ? Number(value) : 0;
+        }),
+        0
+      );
       const containerTotal = Math.max(derivedContainerTotal, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0));
       const pillowTotal = Math.max(derivedPillowTotal, Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0));
       const hasContainerTotal = Boolean(hasContainerSummary || derivedContainerTotal > 0);
