@@ -41,10 +41,22 @@ const getStageState = (machineData, name, index, substages = []) => {
   const stage = machineData?.processStage;
   const p = normalizeStage(process);
   const st = normalizeStage(stage);
-  const substageActive = substages.some(item => normalizeStage(item) === st);
+  // Match controller wording variations for transfer stages.
+  const isTransferCookedJuice =
+    /transfer.*(cooked juice|cooked extract|extract)/.test(st) ||
+    /(cooked juice|cooked extract|extract).*transfer/.test(st);
+  const isFinalLiquidTransfer =
+    /final liquid transfer/.test(st) ||
+    (/transfer/.test(st) && /liquid|mixture|repellent/.test(st));
+  const substageActive = substages.some(item => {
+    const expected = normalizeStage(item);
+    if (expected === 'transfer cooked juice') return isTransferCookedJuice;
+    if (expected === 'final liquid transfer') return isFinalLiquidTransfer;
+    return expected === st;
+  });
   const belongsToMain = p.includes(normalizeStage(name)) ||
-    (name === 'Liquid extraction' && /liquid|extract|cook|water|cool|transfer cooked juice/.test(p)) ||
-    (name === 'Repellent mixing' && /repellent|mix|final liquid transfer/.test(p));
+    (name === 'Liquid extraction' && /liquid|extract|cook|water|cool|transfer/.test(p)) ||
+    (name === 'Repellent mixing' && /repellent|mix|final liquid transfer|liquid transfer/.test(p));
   const fiberExtractionFinished =
     p.includes('fiber extraction completed') ||
     st.includes('fiber extraction completed') ||
