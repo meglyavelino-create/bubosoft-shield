@@ -330,6 +330,10 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
 }
 function ProductionHistory({period,setPeriod,productionSummary,productionHistory,productionReportRange,setProductionReportRange}) {
   const [resettingBaseline, setResettingBaseline] = useState(false);
+  const [eventSearch, setEventSearch] = useState('');
+  const [eventFilter, setEventFilter] = useState('All events');
+  const [eventPage, setEventPage] = useState(1);
+  const eventPageSize = 10;
   const resetAt = Number(productionSummary?.resetAt || 0);
   const activeHistory = productionHistory.filter(item => Number(item.createdAt || 0) > resetAt);
   const resetProductionBaseline = async () => {
@@ -523,10 +527,38 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const eventText = String(item.event || item.title || item.type || '').toLowerCase().replace(/[_-]+/g, ' ');
         const detailText = String(item.machineStatus || item.details || item.message || '').toLowerCase().replace(/[_-]+/g, ' ');
         return /process completed|process interrupted|pillow produced|repellent container/.test(eventText) || /process completed|process interrupted|pillow produced|repellent container/.test(detailText);
+      }).sort((a,b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+      const searchedHistory = relevantHistory.filter(item => {
+        const eventText = String(item.event || item.title || item.type || '').replace(/[_-]+/g, ' ');
+        const details = String(item.machineStatus || item.details || item.message || (item.demoMode ? 'Demo record' : 'Firebase record'));
+        const haystack = (eventText + ' ' + details + ' ' + (item.createdAt ? new Date(Number(item.createdAt)).toLocaleString() : '')).toLowerCase();
+        const matchesSearch = haystack.includes(eventSearch.trim().toLowerCase());
+        const normalized = eventText.toLowerCase();
+        const matchesFilter = eventFilter === 'All events' ||
+          (eventFilter === 'Pillows produced' && /pillow produced/.test(normalized)) ||
+          (eventFilter === 'Process completed' && /process completed/.test(normalized)) ||
+          (eventFilter === 'Process interrupted' && /process interrupted/.test(normalized)) ||
+          (eventFilter === 'Repellent containers' && /repellent container/.test(normalized));
+        return matchesSearch && matchesFilter;
       });
-      return <section className="panel history-panel"><div className="panel-head"><div><h2>Production event history</h2><p>Date and time for completed, interrupted, and recorded product-output events</p></div></div>
-        <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{relevantHistory.length ? relevantHistory.map(item => <tr key={item.id}><td>{formatEventLabel(item.event || item.title || item.type || 'Production event')}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || item.message || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No completed or interrupted processes yet</b><span>Only process completion and interruption events will appear here.</span></td></tr>}</tbody></table></div>
-        <div className="chart-footnote"><Radio size={14}/> Completed, interrupted, and product-output records are shown here; timestamps come from Firebase history.</div>
+      const totalPages = Math.max(1, Math.ceil(searchedHistory.length / eventPageSize));
+      const safePage = Math.min(eventPage, totalPages);
+      const pageEvents = searchedHistory.slice((safePage - 1) * eventPageSize, safePage * eventPageSize);
+      return <section className="panel history-panel">
+        <div className="panel-head history-heading"><div><span className="workflow-kicker">RECORDED OUTPUTS</span><h2>Production event history</h2><p>Search and filter completed, interrupted, and product-output events.</p></div><span className="history-total">{searchedHistory.length} events</span></div>
+        <div className="history-toolbar">
+          <label className="history-search"><Search size={16}/><input value={eventSearch} onChange={e=>{setEventSearch(e.target.value);setEventPage(1);}} placeholder="Search events or details..." aria-label="Search production events"/></label>
+          <select value={eventFilter} onChange={e=>{setEventFilter(e.target.value);setEventPage(1);}} aria-label="Filter production events"><option>All events</option><option>Pillows produced</option><option>Process completed</option><option>Process interrupted</option><option>Repellent containers</option></select>
+        </div>
+        <div className="table-wrap history-table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{pageEvents.length ? pageEvents.map(item => {
+          const eventLabel = formatEventLabel(item.event || item.title || item.type || 'Production event');
+          const isPillow = /pillow produced/i.test(eventLabel);
+          const isInterrupted = /process interrupted/i.test(eventLabel);
+          const isCompleted = /process completed/i.test(eventLabel);
+          return <tr key={item.id}><td><span className="history-event-cell"><span className={'history-event-icon ' + (isPillow ? 'pillow' : isInterrupted ? 'interrupted' : isCompleted ? 'completed' : 'other')}>{isPillow ? <Package size={15}/> : isInterrupted ? <AlertTriangle size={15}/> : <CheckCircle2 size={15}/>}</span><b>{eventLabel}</b></span></td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || item.message || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>;
+        }) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>{relevantHistory.length ? 'No matching events' : 'No completed or interrupted processes yet'}</b><span>{relevantHistory.length ? 'Try another search or event filter.' : 'Only process completion and interruption events will appear here.'}</span></td></tr>}</tbody></table></div>
+        <div className="history-pagination"><span>Showing {searchedHistory.length ? (safePage-1)*eventPageSize+1 : 0}–{Math.min(safePage*eventPageSize,searchedHistory.length)} of {searchedHistory.length}</span><div><button type="button" disabled={safePage<=1} onClick={()=>setEventPage(p=>Math.max(1,p-1))}>Previous</button><span>Page {safePage} of {totalPages}</span><button type="button" disabled={safePage>=totalPages} onClick={()=>setEventPage(p=>Math.min(totalPages,p+1))}>Next</button></div></div>
+        <div className="chart-footnote"><Radio size={14}/> Records are sorted newest first. Use search, filters, and pagination to browse older events without a long table.</div>
       </section>;
     })()}
   </>;
