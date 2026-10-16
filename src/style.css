@@ -166,3 +166,53 @@
 
 /* Green status indicator when Firebase is connected */
 .demo:has(+ .bell-wrap) i { background: #22a05a; }
+
+
+/* Refined production workflow UI — presentation only; stage logic/order unchanged */
+.workflow-panel{padding:24px 26px 18px;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#fcfefc 100%);border-color:#dfece2;box-shadow:0 10px 28px #153c2608}
+.workflow-heading{margin-bottom:20px;align-items:center}
+.workflow-kicker{display:inline-flex;align-items:center;gap:7px;margin-bottom:7px;color:#39845a;font-size:9px;font-weight:800;letter-spacing:.16em}
+.workflow-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:#36a263;box-shadow:0 0 0 4px #e4f5e9}
+.workflow-heading h2{font-size:17px!important;letter-spacing:-.025em;margin-bottom:6px!important}
+.workflow-heading p{font-size:11px;line-height:1.5}
+.workflow-overview{display:flex;align-items:center;gap:14px;padding:17px 18px;border:1px solid #dcefe2;border-radius:15px;background:linear-gradient(110deg,#f0faf3,#f8fcf8 75%);margin-bottom:17px}
+.workflow-overview-icon{width:46px;height:46px;display:grid;place-items:center;flex-shrink:0;border-radius:14px;background:#dff4e5;color:#25824b}
+.workflow-current{display:grid;gap:5px;flex:1;min-width:0}
+.workflow-label{font-size:8px;letter-spacing:.12em;font-weight:800;color:#73917d}
+.workflow-current>b{font:800 15px Manrope,sans-serif;color:#244c32;overflow-wrap:anywhere}
+.workflow-current>small{font-size:11px;line-height:1.45;color:#718b79;overflow-wrap:anywhere}
+.workflow-connection{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:7px 10px;border-radius:999px;background:#f1f4f1;color:#87968b;font-size:8px;font-weight:800;letter-spacing:.08em}
+.workflow-connection i{width:6px;height:6px;border-radius:50%;background:#aebbb1}
+.workflow-connection.is-connected{background:#e3f6e9;color:#277b48}
+.workflow-connection.is-connected i{background:#2b9b54;box-shadow:0 0 0 3px #c9eed5}
+.workflow-progress{padding:0 2px 19px;margin-bottom:2px}
+.workflow-progress-copy{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.workflow-progress-copy>span{font-size:10px;font-weight:700;color:#5c7563}
+.workflow-progress-copy>b{font:800 11px Manrope,sans-serif;color:#277b48}
+.workflow-progress-copy b small{font:500 10px 'DM Sans',sans-serif;color:#91a196}
+.workflow-progress-track{height:6px;background:#edf3ee;border-radius:999px;overflow:hidden}
+.workflow-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,#25834b,#67c582);border-radius:999px;transition:width .25s ease}
+.workflow-list{border-top:1px solid #edf3ee}
+.workflow-stage{position:relative;min-height:72px;gap:14px;padding:10px 10px;border-bottom:1px solid #edf3ee;transition:background .15s ease,border-color .15s ease}
+.workflow-stage:hover{background:#fbfefb}
+.workflow-stage.stage-active{background:linear-gradient(90deg,#f0faf3 0%,#fff 78%);border-bottom-color:#e1f0e5}
+.workflow-stage.stage-complete{background:#fcfdff}
+.workflow-stage-icon{width:38px;height:38px;flex-shrink:0;border:1px solid #e4ece5;border-radius:12px;background:#f6f9f6;color:#9aa99e;font-size:10px;font-weight:800;letter-spacing:.04em}
+.workflow-stage.stage-active .workflow-stage-icon{border-color:#bfe5cb;background:#dcf5e4;color:#22834a;box-shadow:0 0 0 4px #effaf2}
+.workflow-stage.stage-complete .workflow-stage-icon{border-color:#d6e5fb;background:#eaf2ff;color:#4278bf}
+.workflow-stage .stage-name{gap:5px}
+.workflow-stage .stage-name b{font-size:12px;color:#304d39}
+.workflow-stage .stage-name small{font-size:10px;line-height:1.4;color:#8b9c90}
+.workflow-stage-status{display:inline-flex;align-items:center;justify-content:center;min-width:105px;padding:7px 10px;border:1px solid #e9efea;border-radius:999px;background:#f7f9f7;color:#8b9a8f!important;font-size:9px!important;font-weight:700}
+.workflow-stage.stage-active .workflow-stage-status{border-color:#c7ead1;background:#e7f8ec;color:#25804a!important}
+.workflow-stage.stage-complete .workflow-stage-status{border-color:#dbe7f8;background:#f0f5ff;color:#4679b9!important}
+.workflow-stage.stage-interrupted .workflow-stage-status{border-color:#f5d9d3;background:#fff2ef;color:#bf5144!important}
+.workflow-stage>em{font-size:11px}
+.workflow-substages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;padding:12px 12px 14px 62px;border-bottom:1px solid #edf3ee;background:#fbfdfb}
+.workflow-substages .stage-substage{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #e0e9e2!important;border-radius:999px;background:#fff!important;color:#718378!important;font-size:10px;line-height:1.4;white-space:nowrap;transition:all .15s ease}
+.workflow-substages .stage-substage-active{border-color:#8bd2a1!important;background:#e8f8ed!important;color:#217b45!important;font-weight:800;box-shadow:0 2px 7px #2c9b5010}
+.workflow-substages .stage-substage-active i{width:6px;height:6px;border-radius:50%;background:#23934b;box-shadow:0 0 0 3px #c9eed4}
+.workflow-footer{padding-top:17px}
+.workflow-footer button{display:inline-flex;align-items:center;gap:5px}
+@media(max-width:700px){.workflow-panel{padding:16px 13px}.workflow-heading h2{font-size:15px!important}.workflow-overview{align-items:flex-start;padding:13px;gap:10px}.workflow-overview-icon{width:38px;height:38px;border-radius:11px}.workflow-current>b{font-size:13px}.workflow-current>small{font-size:10px}.workflow-connection{font-size:7px;padding:6px 7px}.workflow-stage{min-height:66px;gap:9px;padding:9px 3px}.workflow-stage-icon{width:32px;height:32px;border-radius:10px}.workflow-stage .stage-name b{font-size:10px}.workflow-stage .stage-name small{font-size:9px}.workflow-stage-status{min-width:0;padding:6px 8px;font-size:8px!important}.workflow-stage em{width:9px}.workflow-substages{padding:10px 5px 12px 41px;gap:6px}.workflow-substages .stage-substage{font-size:9px;padding:7px 9px}.workflow-progress-copy>span{font-size:9px}.workflow-progress-copy b small{font-size:9px}}
+@media(max-width:390px){.workflow-connection{display:none}.workflow-stage{gap:7px}.workflow-stage-status{padding:5px 6px}.workflow-stage em{display:none}.workflow-substages{padding-left:8px}}
