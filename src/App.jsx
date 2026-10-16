@@ -345,28 +345,31 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const pillowTotal = Math.max(derivedPillowTotal, Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0));
       const hasContainerTotal = Boolean(hasContainerSummary || derivedContainerTotal > 0);
       const hasPillowTotal = Boolean(hasPillowSummary || derivedPillowTotal > 0);
-      const buildLine = (total, fieldNames, eventRows, deltaFields, fallbackDelta) => {
-        // Prefer saved cumulative snapshots. For older events, reconstruct points from
-        // per-event deltas so pillow_produced records and legacy completion records plot.
-        const snapshots = eventRows.map(item => {
-          for (const field of fieldNames) {
-            const raw = item[field];
-            if (raw !== undefined && raw !== null && Number.isFinite(Number(raw))) {
-              return { value: Number(raw), createdAt: Number(item.createdAt) };
-            }
-          }
-          return null;
-        }).filter(Boolean);
-        let points = snapshots;
-        if (!points.length) {
-          let running = 0;
-          points = eventRows.map(item => {
-            const rawDelta = deltaFields.map(field => item[field]).find(value => value !== undefined && value !== null && Number.isFinite(Number(value)));
-            const delta = rawDelta !== undefined ? Math.max(0, Number(rawDelta)) : fallbackDelta(item);
+      const buildLine = (total, fieldNames, eventRows, deltaFields, fallbackDelta, summaryTimestamp) => {
+        // Build a point from each saved cumulative snapshot or per-event output.
+        // Mixing both formats keeps newer snapshot records and older delta-only records visible.
+        let running = 0;
+        const points = eventRows.map(item => {
+          const rawSnapshot = fieldNames.map(field => item[field]).find(value => value !== undefined && value !== null && Number.isFinite(Number(value)));
+          const rawDelta = deltaFields.map(field => item[field]).find(value => value !== undefined && value !== null && Number.isFinite(Number(value)));
+          let value;
+          if (rawSnapshot !== undefined) {
+            value = Number(rawSnapshot);
+            running = Math.max(running, value);
+          } else {
+            const delta = rawDelta !== undefined ? Math.max(0, Number(rawDelta)) : Math.max(0, Number(fallbackDelta(item) || 0));
             if (delta <= 0) return null;
             running += delta;
-            return {value:running, createdAt:Number(item.createdAt)};
-          }).filter(Boolean);
+            value = running;
+          }
+          return { value, createdAt: Number(item.createdAt) };
+        }).filter(Boolean);
+        // A summary may contain the live lifetime total even when older firmware did
+        // not write individual production events. Show it as a clearly-labeled snapshot
+        // rather than leaving a valid non-zero total with an empty chart.
+        if (!points.length && Number(total) > 0) {
+          const latestEventTime = eventRows.reduce((latest, item) => Math.max(latest, Number(item.createdAt) || 0), 0);
+          points.push({ value: Number(total), createdAt: Number(summaryTimestamp) || latestEventTime || Date.now(), estimated: true });
         }
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
@@ -374,8 +377,9 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const path = coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
         return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
       };
-      const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter'], completedEvents, ['repellentContainerDelta','containerDelta'], item => 1);
-      const pillowLine = buildLine(pillowTotal, ['lifetimePillowsProduced','pillowsProduced','pillowCount','pillowCountAfter'], allEvents, ['pillowDelta','pillowsProducedDelta','pillowCountDelta'], item => /pillow produced/i.test(String(item.event || item.title || item.type || '')) ? 1 : 0);
+      const summaryTimestamp = productionSummary?.updatedAt ?? productionSummary?.createdAt ?? productionSummary?.timestamp;
+      const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter'], completedEvents, ['repellentContainerDelta','containerDelta'], item => 1, summaryTimestamp);
+      const pillowLine = buildLine(pillowTotal, ['lifetimePillowsProduced','pillowsProduced','pillowCount','pillowCountAfter'], allEvents, ['pillowDelta','pillowsProducedDelta','pillowCountDelta'], item => /pillow produced/i.test(String(item.event || item.title || item.type || '')) ? 1 : 0, summaryTimestamp);
       const LineChart = ({data,color,label,hasData}) => <div className="line-chart-wrap">
         <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
         <div className="line-chart-plot">
@@ -406,11 +410,11 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const relevantHistory = productionHistory.filter(item => {
         const eventText = String(item.event || item.title || item.type || '').toLowerCase().replace(/[_-]+/g, ' ');
         const detailText = String(item.machineStatus || item.details || item.message || '').toLowerCase().replace(/[_-]+/g, ' ');
-        return /process completed|process interrupted/.test(eventText) || /process completed|process interrupted/.test(detailText);
+        return /process completed|process interrupted|pillow produced|repellent container/.test(eventText) || /process completed|process interrupted|pillow produced|repellent container/.test(detailText);
       });
-      return <section className="panel history-panel"><div className="panel-head"><div><h2>Completed & interrupted history</h2><p>Date and time for each completed or interrupted production process</p></div></div>
+      return <section className="panel history-panel"><div className="panel-head"><div><h2>Production event history</h2><p>Date and time for completed, interrupted, and recorded product-output events</p></div></div>
         <div className="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>{relevantHistory.length ? relevantHistory.map(item => <tr key={item.id}><td>{formatEventLabel(item.event || item.title || item.type || 'Production event')}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleDateString() : '—'}</td><td>{item.createdAt ? new Date(Number(item.createdAt)).toLocaleTimeString() : '—'}</td><td>{item.machineStatus || item.details || item.message || (item.demoMode ? 'Demo record' : 'Firebase record')}</td></tr>) : <tr><td colSpan="4" className="empty-cell"><History size={23}/><b>No completed or interrupted processes yet</b><span>Only process completion and interruption events will appear here.</span></td></tr>}</tbody></table></div>
-        <div className="chart-footnote"><Radio size={14}/> Only completed and interrupted process records are shown here; timestamps come from Firebase history.</div>
+        <div className="chart-footnote"><Radio size={14}/> Completed, interrupted, and product-output records are shown here; timestamps come from Firebase history.</div>
       </section>;
     })()}
   </>;
