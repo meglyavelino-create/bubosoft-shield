@@ -241,6 +241,12 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   const fiberWorkflowStages = stages.slice(0, 9);
   const fillingStage = stages[9];
   const fillingState = getStageState(machineData, fillingStage[0], 9, []);
+  const liveWorkflowStates = fiberWorkflowStages.map(([name, , substages], index) => ({
+    name,
+    ...getStageState(machineData, name, index, substages || [])
+  }));
+  const liveWorkflowCompletedCount = liveWorkflowStates.filter(item => item.completed).length;
+  const liveWorkflowProgressPercent = Math.round((liveWorkflowCompletedCount / fiberWorkflowStages.length) * 100);
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   const sensorRows = [
     ['middleCottonLaser', 'Middle Cotton Laser', 'Cotton Level'],
@@ -253,8 +259,12 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
       <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
       <section className="panel stage-panel">
         <div className="panel-head">
-          <div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div>
+          <div><span className="workflow-kicker">LIVE WORKFLOW</span><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div>
           <span className="monitor-count live-monitor-count"><Activity size={14}/> {fiberWorkflowStages.length} fiber &amp; liquid stages</span>
+        </div>
+        <div className="live-workflow-progress">
+          <div className="live-workflow-progress-copy"><span>Workflow progress</span><b>{liveWorkflowCompletedCount} <small>of {fiberWorkflowStages.length} stages completed</small></b></div>
+          <div className="live-workflow-progress-track"><span style={{width: liveWorkflowProgressPercent + '%'}}/></div>
         </div>
         <div className="stage-grid live-stage-grid">
           {fiberWorkflowStages.map(([name, desc, substages], index) => {
