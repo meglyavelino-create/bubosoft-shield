@@ -257,7 +257,7 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
 function ProductionHistory({period,setPeriod,productionSummary,productionHistory,productionReportRange,setProductionReportRange}) {
   const [resettingBaseline, setResettingBaseline] = useState(false);
   const resetAt = Number(productionSummary?.resetAt || 0);
-  const activeHistory = activeHistory.filter(item => Number(item.createdAt || 0) > resetAt);
+  const activeHistory = productionHistory.filter(item => Number(item.createdAt || 0) > resetAt);
   const resetProductionBaseline = async () => {
     if (resettingBaseline) return;
     const confirmed = window.confirm('Start a new production-count session at zero? Old history will be preserved, but totals and graphs will count only records created after this reset.');
