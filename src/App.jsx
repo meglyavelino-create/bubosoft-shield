@@ -375,7 +375,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
         // Use straight segments between measured counts; smoothing can create misleading overshoots.
         const path = coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-        return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
+        return {max, coords, path, total, hasSnapshots:eventRows.some(item => fieldNames.some(field => item[field] !== undefined && item[field] !== null && Number.isFinite(Number(item[field]))))};
       };
       const summaryTimestamp = productionSummary?.updatedAt ?? productionSummary?.createdAt ?? productionSummary?.timestamp;
       const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter'], completedEvents, ['repellentContainerDelta','containerDelta'], item => 1, summaryTimestamp);
