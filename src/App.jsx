@@ -237,6 +237,10 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
 }
 function LiveMonitoring({inform, machineData, firebaseStatus}) {
   const sensors = machineData?.sensors || {};
+  // Keep the live monitor consistent with the dashboard: pillow filling is independent.
+  const fiberWorkflowStages = stages.slice(0, 9);
+  const fillingStage = stages[9];
+  const fillingState = getStageState(machineData, fillingStage[0], 9, []);
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   const sensorRows = [
     ['middleCottonLaser', 'Middle Cotton Laser', 'Cotton Level'],
@@ -250,10 +254,10 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
       <section className="panel stage-panel">
         <div className="panel-head">
           <div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div>
-          <span className="monitor-count"><Activity size={14}/> {stages.length} production stages</span>
+          <span className="monitor-count live-monitor-count"><Activity size={14}/> {fiberWorkflowStages.length} fiber &amp; liquid stages</span>
         </div>
-        <div className="stage-grid">
-          {stages.map(([name, desc, substages], index) => {
+        <div className="stage-grid live-stage-grid">
+          {fiberWorkflowStages.map(([name, desc, substages], index) => {
             const state = getStageState(machineData, name, index, substages || []);
             const currentSubstage = machineData?.processStage;
             const locationDescription = getStageLocationDescription(name, machineData);
@@ -281,27 +285,34 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
           })}
         </div>
       </section>
-      <section className="panel">
+      <section className="panel live-independent-panel">
         <div className="panel-head">
-          <div><h2>Sensor inputs</h2><p>Pin references from the current project plan</p></div>
-          <span className="sample"><i/> {String(firebaseStatus || 'Connecting').toUpperCase()}</span>
+          <div><span className="workflow-kicker independent-kicker">SEPARATE PRODUCTION PROCESS</span><h2>Pillow filling</h2><p>Monitored independently from fiber extraction and liquid preparation.</p></div>
+          <span className={'independent-status ' + (fillingState.active ? 'is-running' : fillingState.completed ? 'is-complete' : '')}><i/>{fillingState.label}</span>
         </div>
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>Sensor</th><th>Purpose</th><th>Current value</th><th>Status</th></tr></thead>
-            <tbody>
-              {sensorRows.map(([key, name, purpose]) => {
-                const value = sensors[key];
-                const hasValue = value !== undefined && value !== null;
-                return (
-                  <tr key={key}>
-                    <td>{name}</td><td>{purpose}</td><td>{signalLabel(value)}</td>
-                    <td><span className={'pill ' + (hasValue ? 'good' : 'muted')}>{hasValue ? 'Live' : 'No data'}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className={'independent-stage ' + (fillingState.active ? 'stage-active' : fillingState.completed ? 'stage-complete' : fillingState.interrupted ? 'stage-interrupted' : '')}>
+          <div className="independent-stage-icon"><Package size={21}/></div>
+          <div className="independent-stage-copy"><b>{fillingStage[0]}</b><small>{fillingStage[1]}</small><span>{fillingState.active ? 'Filling process is currently active.' : fillingState.completed ? 'Filling process is marked completed.' : 'Waiting for the pillow-filling controller to report its stage.'}</span></div>
+          <div className="independent-stage-number">INDEPENDENT PROCESS</div>
+        </div>
+      </section>
+      <section className="panel live-sensors-panel">
+        <div className="panel-head live-sensors-heading">
+          <div><span className="workflow-kicker">HARDWARE TELEMETRY</span><h2>Sensor inputs</h2><p>Live readings received from the machine controller.</p></div>
+          <span className="sample live-sensor-connection"><i/> {String(firebaseStatus || 'Connecting').toUpperCase()}</span>
+        </div>
+        <div className="live-sensor-grid">
+          {sensorRows.map(([key, name, purpose]) => {
+            const value = sensors[key];
+            const hasValue = value !== undefined && value !== null;
+            const signal = typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : signalLabel(value);
+            return <div className={'live-sensor-card ' + (hasValue ? 'has-reading' : 'no-reading')} key={key}>
+              <div className="live-sensor-card-top"><span className="live-sensor-dot"/><span>{hasValue ? 'LIVE READING' : 'NO DATA'}</span></div>
+              <b>{name}</b><small>{purpose}</small>
+              <div className="live-sensor-value">{signal}</div>
+              <div className="live-sensor-card-foot">{hasValue ? (typeof value === 'boolean' ? (value ? 'Signal detected' : 'No signal detected') : 'Value received from controller') : 'Waiting for sensor telemetry'}</div>
+            </div>;
+          })}
         </div>
       </section>
     </>
