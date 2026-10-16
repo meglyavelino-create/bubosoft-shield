@@ -168,7 +168,8 @@ function LiveMonitoring({inform, machineData, firebaseStatus}) {
   const signalLabel = value => value === undefined || value === null ? '—' : typeof value === 'boolean' ? (value ? 'HIGH' : 'LOW') : String(value);
   return <>
     <PageHeading eyebrow="MACHINE TELEMETRY" title="Live Monitoring" subtitle="Review configured sensor inputs and machine process states." />
-    \n    <section className="panel stage-panel">
+    
+    <section className="panel stage-panel">
       <div className="panel-head"><div><h2>Process stage monitor</h2><p>Monitor each production stage reported by the machine.</p></div><span className="monitor-count"><Activity size={14}/> 10 production stages</span></div>
       <div className="stage-grid">{stages.map(([name, desc, substages], index) => {
         const {active, completed, interrupted, label} = getStageState(machineData, name, index, substages || []);
