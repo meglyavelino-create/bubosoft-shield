@@ -341,7 +341,10 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const hasPillowSummary = productionSummary && (productionSummary.lifetimePillowsProduced !== undefined || productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
       const derivedContainerTotal = completedEvents.length;
       const derivedPillowTotal = Math.max(
-        pillowEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0),
+        // Sum explicit pillow-output deltas across all recorded production events.
+        // This reflects repeat filling cycles even if the summary snapshot is stale.
+        allEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0),
+        // Some firmware writes cumulative count snapshots without a pillow_produced event.
         ...allEvents.map(item => {
           const value = item.lifetimePillowsProduced ?? item.pillowsProduced ?? item.pillowCount ?? item.pillowCountAfter;
           return value !== undefined && value !== null && Number.isFinite(Number(value)) ? Number(value) : 0;
