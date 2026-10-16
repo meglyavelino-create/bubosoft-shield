@@ -319,6 +319,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         }
       });
 
+      const dateOptions = {month:'short', day:'numeric', year:'numeric'};
       const rangeText = `${start.toLocaleDateString(undefined,dateOptions)} – ${now.toLocaleDateString(undefined,dateOptions)}`;
       return <section className="panel production-period-panel">
         <div className="panel-head"><div><h2>Production by period</h2><p>Completed output grouped by recorded date and time</p></div>
