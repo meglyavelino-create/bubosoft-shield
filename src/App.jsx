@@ -335,7 +335,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       const allEvents = [...productionHistory]
         .filter(item => item.createdAt)
         .sort((a,b) => Number(a.createdAt) - Number(b.createdAt));
-      const completedEvents = allEvents.filter(item => /process completed/i.test(String(item.event || item.title || item.type || '')));
+      const completedEvents = allEvents.filter(item => /process completed/i.test(String(item.event || item.title || item.type || '').replace(/[_-]+/g, ' ')));
       const pillowEvents = allEvents.filter(item => /pillow produced/i.test(String(item.event || item.title || item.type || '')));
       const hasContainerSummary = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
       const hasPillowSummary = productionSummary && (productionSummary.lifetimePillowsProduced !== undefined || productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
