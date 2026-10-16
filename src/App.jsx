@@ -45,8 +45,19 @@ const getStageState = (machineData, name, index, substages = []) => {
   const belongsToMain = p.includes(normalizeStage(name)) ||
     (name === 'Liquid extraction' && /liquid|extract|cook|water|cool|transfer cooked juice/.test(p)) ||
     (name === 'Repellent mixing' && /repellent|mix|final liquid transfer/.test(p));
-  const active = stageMatches(process, name) || stageMatches(stage, name) || (substageActive && belongsToMain);
-  const completed = Number(machineData?.completedStageIndex || 0) > index;
+  const fiberExtractionFinished =
+    p.includes('fiber extraction completed') ||
+    st.includes('fiber extraction completed') ||
+    p === 'process completed' ||
+    st === 'process completed';
+  // A stage is active only when the controller explicitly reports it.
+  // The final fiber stage shares index 6 with the completion marker, so
+  // distinguish "Opening Separation Storage" from the later waiting state.
+  const active = !fiberExtractionFinished &&
+    (stageMatches(process, name) || stageMatches(stage, name) || (substageActive && belongsToMain));
+  const reportedStageIndex = Number(machineData?.completedStageIndex);
+  const completed = (Number.isFinite(reportedStageIndex) && reportedStageIndex > index) ||
+    (index === 6 && fiberExtractionFinished);
   const interrupted = normalizeStage(machineData?.lastEventType) === 'process interrupted' && (active || stageMatches(process, 'Interrupted'));
   const label = interrupted ? 'Interrupted' : active ? 'Running' : completed ? 'Completed' : 'Waiting for stage';
   return { active, completed, interrupted, label };
