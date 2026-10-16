@@ -161,6 +161,7 @@ function Dashboard({go, inform, refresh, period, setPeriod, refreshCount, pillow
       const pillowDeltaRaw = item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta;
       if (containerDeltaRaw != null && Number.isFinite(Number(containerDeltaRaw))) { if (inRange) containers += Math.max(0, Number(containerDeltaRaw)); }
       else if (containerNow !== null && previousContainers !== null && inRange) containers += Math.max(0, containerNow-previousContainers);
+      else if (inRange && /process completed/i.test(String(item.event || item.title || item.type || ''))) containers += 1;
       if (pillowDeltaRaw != null && Number.isFinite(Number(pillowDeltaRaw))) { if (inRange) pillows += Math.max(0, Number(pillowDeltaRaw)); }
       else if (pillowNow !== null && previousPillows !== null && inRange) pillows += Math.max(0, pillowNow-previousPillows);
       if (containerNow !== null) previousContainers = containerNow;
@@ -256,7 +257,7 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
   const labels = period === 'This week' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : period === 'This month' ? ['Week 1','Week 2','Week 3','Week 4'] : period === 'This year' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['Today'];
   const periods = <select value={period} onChange={e=>setPeriod(e.target.value)} aria-label="Chart date range"><option>Today</option><option>This week</option><option>This month</option><option>This year</option></select>;
   return <><PageHeading eyebrow="PRODUCTION ANALYTICS" title="Production History" subtitle="Track repellent containers processed, completed pillows, and production events over time." />
-    <div className="stats"><Stat icon={Droplets} tone="green" label="Overall repellent containers" value={productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? '—'} meta="Lifetime total saved in Firebase" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Overall pillows produced" value={productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? '—'} meta="Lifetime total saved in Firebase" tag={productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
+    <div className="stats"><Stat icon={Droplets} tone="green" label="Overall repellent containers" value={Math.max([...productionHistory].filter(item => /process completed/i.test(String(item.event || item.title || item.type || ''))).length, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0))} meta="Lifetime total from summary and completed history" tag={productionHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={Package} tone="blue" label="Overall pillows produced" value={Math.max([...productionHistory].filter(item => /pillow produced/i.test(String(item.event || item.title || item.type || ''))).reduce((sum,item) => sum + Math.max(0,Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)),0), Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0))} meta="Lifetime total from summary and pillow history" tag={productionHistory.length || productionSummary ? 'RECORDED' : 'EMPTY'}/><Stat icon={CheckCircle2} tone="purple" label="History events" value={productionHistory.length} meta="Records from production/history" tag={productionHistory.length ? 'RECORDED' : 'EMPTY'}/><Stat icon={AlertTriangle} tone="orange" label="Demo records" value={productionHistory.filter(x => x.demoMode || /demo/i.test(x.event || '')).length} meta="Simulated records if present" tag="INFO"/></div>
     {(() => {
       const now = new Date();
       const start = new Date(now);
@@ -299,6 +300,9 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
         } else if (currentContainers !== null) {
           const delta = previousContainers === null ? 0 : Math.max(0, currentContainers - previousContainers);
           if (inRange) { containers += delta; if (delta > 0) knownContainerEvents++; }
+        } else if (inRange && /process completed/i.test(String(item.event || item.title || item.type || ''))) {
+          containers += 1;
+          knownContainerEvents++;
         }
         if (explicitPillowDelta !== undefined && explicitPillowDelta !== null && Number.isFinite(Number(explicitPillowDelta))) {
           const delta = Math.max(0, Number(explicitPillowDelta));
@@ -327,17 +331,23 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
       </section>;
     })()}
     {(() => {
-      const completedEvents = [...productionHistory]
-        .filter(item => /process completed/i.test(String(item.event || item.title || '')) && item.createdAt)
+      const allEvents = [...productionHistory]
+        .filter(item => item.createdAt)
         .sort((a,b) => Number(a.createdAt) - Number(b.createdAt));
-      const hasContainerTotal = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
-      const hasPillowTotal = productionSummary && (productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
-      const containerTotal = Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0);
-      const pillowTotal = Number(productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0);
-      const buildLine = (total, fieldNames) => {
-        // Use only events with saved cumulative snapshots when available. Older events
-        // remain in the table but cannot be plotted as exact historical count values.
-        const snapshots = completedEvents.map(item => {
+      const completedEvents = allEvents.filter(item => /process completed/i.test(String(item.event || item.title || item.type || '')));
+      const pillowEvents = allEvents.filter(item => /pillow produced/i.test(String(item.event || item.title || item.type || '')));
+      const hasContainerSummary = productionSummary && (productionSummary.repellentContainerCount !== undefined || productionSummary.repellentContainersProcessed !== undefined);
+      const hasPillowSummary = productionSummary && (productionSummary.lifetimePillowsProduced !== undefined || productionSummary.pillowsProduced !== undefined || productionSummary.pillowCount !== undefined);
+      const derivedContainerTotal = completedEvents.length;
+      const derivedPillowTotal = pillowEvents.reduce((sum,item) => sum + Math.max(0, Number(item.pillowDelta ?? item.pillowsProducedDelta ?? item.pillowCountDelta ?? 0)), 0);
+      const containerTotal = Math.max(derivedContainerTotal, Number(productionSummary?.repellentContainerCount ?? productionSummary?.repellentContainersProcessed ?? 0));
+      const pillowTotal = Math.max(derivedPillowTotal, Number(productionSummary?.lifetimePillowsProduced ?? productionSummary?.pillowsProduced ?? productionSummary?.pillowCount ?? 0));
+      const hasContainerTotal = Boolean(hasContainerSummary || derivedContainerTotal > 0);
+      const hasPillowTotal = Boolean(hasPillowSummary || derivedPillowTotal > 0);
+      const buildLine = (total, fieldNames, eventRows, deltaFields, fallbackDelta) => {
+        // Prefer saved cumulative snapshots. For older events, reconstruct points from
+        // per-event deltas so pillow_produced records and legacy completion records plot.
+        const snapshots = eventRows.map(item => {
           for (const field of fieldNames) {
             const raw = item[field];
             if (raw !== undefined && raw !== null && Number.isFinite(Number(raw))) {
@@ -346,15 +356,25 @@ function ProductionHistory({period,setPeriod,productionSummary,productionHistory
           }
           return null;
         }).filter(Boolean);
-        const points = snapshots;
+        let points = snapshots;
+        if (!points.length) {
+          let running = 0;
+          points = eventRows.map(item => {
+            const rawDelta = deltaFields.map(field => item[field]).find(value => value !== undefined && value !== null && Number.isFinite(Number(value)));
+            const delta = rawDelta !== undefined ? Math.max(0, Number(rawDelta)) : fallbackDelta(item);
+            if (delta <= 0) return null;
+            running += delta;
+            return {value:running, createdAt:Number(item.createdAt)};
+          }).filter(Boolean);
+        }
         const max = Math.max(4, Math.ceil(Math.max(total, ...points.map(p => p.value), 0) / 4) * 4);
         const coords = points.map((p,i) => ({x: points.length === 1 ? 50 : 4 + i * (92 / (points.length - 1)), y: 100 - (p.value / max) * 88, value:p.value, createdAt:p.createdAt, estimated:p.estimated}));
         // Use straight segments between measured counts; smoothing can create misleading overshoots.
         const path = coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
         return {max, coords, path, total, hasSnapshots:snapshots.length > 0};
       };
-      const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter']);
-      const pillowLine = buildLine(pillowTotal, ['pillowsProduced', 'pillowCount', 'pillowCountAfter']);
+      const containerLine = buildLine(containerTotal, ['repellentContainerCount', 'repellentContainersProcessed', 'containerCountAfter'], completedEvents, ['repellentContainerDelta','containerDelta'], item => 1);
+      const pillowLine = buildLine(pillowTotal, ['lifetimePillowsProduced','pillowsProduced','pillowCount','pillowCountAfter'], allEvents, ['pillowDelta','pillowsProducedDelta','pillowCountDelta'], item => /pillow produced/i.test(String(item.event || item.title || item.type || '')) ? 1 : 0);
       const LineChart = ({data,color,label,hasData}) => <div className="line-chart-wrap">
         <div className="line-chart-y"><span>{data.max}</span><span>{Math.round(data.max*0.75)}</span><span>{Math.round(data.max*0.5)}</span><span>{Math.round(data.max*0.25)}</span><span>0</span></div>
         <div className="line-chart-plot">
