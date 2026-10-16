@@ -289,3 +289,22 @@
 .live-workflow-progress-copy b small{font:500 10px 'DM Sans',sans-serif;color:#91a196}
 .live-workflow-progress-track{height:6px;background:#edf3ee;border-radius:999px;overflow:hidden}
 .live-workflow-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,#25834b,#67c582);border-radius:999px;transition:width .25s ease}
+
+
+/* Green palette for the independent pillow-filling process across Dashboard and Live Monitoring */
+.independent-kicker{color:#39845a!important}
+.independent-kicker:before{background:#36a263!important;box-shadow:0 0 0 4px #e4f5e9!important}
+.independent-process-panel,.live-independent-panel{border-color:#dcefe2!important;background:linear-gradient(180deg,#fff 0%,#fcfefc 100%)!important}
+.independent-status{border-color:#e0ece3!important;background:#f5faf6!important;color:#6e8976!important}
+.independent-status i{background:#a9bcae!important}
+.independent-status.is-running{border-color:#c7ead1!important;background:#e7f8ec!important;color:#25804a!important}
+.independent-status.is-running i{background:#25994d!important;box-shadow:0 0 0 3px #c9eed4!important}
+.independent-status.is-complete{border-color:#cfe8d7!important;background:#edf8f0!important;color:#347d4c!important}
+.independent-status.is-complete i{background:#369458!important}
+.independent-stage{border-color:#e0ece3!important;background:#fbfefb!important}
+.independent-stage.stage-active{border-color:#bfe5cb!important;background:linear-gradient(100deg,#effaf2,#fff)!important}
+.independent-stage.stage-complete{border-color:#d1ead8!important;background:#f7fcf8!important}
+.independent-stage-icon{background:#e8f6eb!important;color:#388454!important}
+.independent-stage.stage-active .independent-stage-icon{background:#d9f2e1!important;color:#25804a!important}
+.independent-stage.stage-complete .independent-stage-icon{background:#e2f4e7!important;color:#347d4c!important}
+.independent-stage-number{border-color:#dcece0!important;background:#fff!important;color:#60866b!important}
